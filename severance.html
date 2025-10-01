@@ -79,6 +79,14 @@
 
   .row-actions{display:flex;gap:10px;align-items:center;padding:16px;border-top:1px solid var(--line);background:var(--surface)}
   .note{padding:18px;border-top:1px solid var(--line);background:var(--surface);color:var(--muted);line-height:1.7;font-size:13px;border-bottom-left-radius:18px;border-bottom-right-radius:18px}
+
+  /* 강조용 스타일 */
+.highlight-cell {
+  background:#fffdf5;          /* 아주 연한 상아색 */
+  border:2px solid #e5c07b;    /* 금빛 느낌의 테두리 */
+  font-weight:800;
+}
+
 </style>
 </head>
 <body>
@@ -244,7 +252,7 @@
           </tr>
           <tr>
             <th>차인지급액</th>
-            <td class="right mono" id="diffPay" colspan="7">0</td>
+            <td class="right mono highlight-cell" id="diffPay" colspan="7">0</td>
           </tr>
         </table>
       </div>

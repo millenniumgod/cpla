@@ -80,31 +80,16 @@
   .row-actions{display:flex;gap:10px;align-items:center;padding:16px;border-top:1px solid var(--line);background:var(--surface)}
   .note{padding:18px;border-top:1px solid var(--line);background:var(--surface);color:var(--muted);line-height:1.7;font-size:13px;border-bottom-left-radius:18px;border-bottom-right-radius:18px}
 
-/* 차인지급액 강조 셀 */
+/* 차인지급액 강조 셀 - 깔끔한 모서리 & 텍스트 가림 없음 */
 .highlight-cell{
-  background:#fffdf5;           /* 연한 상아색 */
-  border:2px solid #000;        /* 검정 테두리 */
+  background:#fffdf5;                /* 아주 연한 상아색 */
   font-weight:800;
-  position:relative;
-  border-bottom:2px solid #000 !important; 
-  border-radius:0 !important;   /* 셀 자체 둥근 모서리 제거 */
-  overflow:visible;
+  border:0 !important;               /* 기존 border/충돌 제거 */
+  box-shadow: inset 0 0 0 2px #000;  /* 내부에 2px 검은 테두리 */
+  border-bottom-right-radius:14px;   /* .table-wrap 반경(14px)과 맞춤 */
+  padding-right:12px;                /* 숫자 여백 안전 확보 */
 }
 
-/* 우하단 모서리 보정 */
-.highlight-cell.corner-fix::after{
-  content:"";
-  position:absolute;
-  right:-2px;
-  bottom:-2px;
-  width:18px;                    /* 약간 키워서 자연스럽게 */
-  height:18px;
-  border-bottom-right-radius:14px;   /* table-wrap과 동일 반경 */
-  border-right:2px solid #000;
-  border-bottom:2px solid #000;
-  background:#fffdf5;            /* 셀 배경색으로 채워서 자연스럽게 */
-  pointer-events:none;
-}
 
 
 </style>
@@ -272,7 +257,7 @@
           </tr>
           <tr>
             <th>차인지급액</th>
-            <td class="right mono highlight-cell corner-fix" id="diffPay" colspan="7">0</td>
+              <td class="right mono highlight-cell" id="diffPay" colspan="7">0</td>
           </tr>
         </table>
       </div>

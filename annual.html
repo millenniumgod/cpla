@@ -206,6 +206,14 @@ function calc(){
   const join = dt(jStr);
   const leave = lStr ? dt(lStr) : null;
 
+  // a,b는 'yyyy-mm-dd' 혹은 Date. 두 날짜 모두 포함(예: 7/1~12/31 => 184일)
+function daysInclusive(a,b){
+  const A = (a instanceof Date) ? a : new Date(a);
+  const B = (b instanceof Date) ? b : new Date(b);
+  return Math.max(0, Math.floor((B - A) / 86400000) + 1);
+}
+
+
   /* ===== 입사일 기준 테이블 ===== */
   const aBody=document.getElementById('annivBody');
   clearTbody(aBody);
@@ -243,54 +251,77 @@ function calc(){
   }
   document.getElementById('annivSum').textContent = annivSum.toString();
 
-  /* ===== 회계연도(캘린더연도) 기준 테이블 ===== */
-  const fBody=document.getElementById('fiscalBody');
-  clearTbody(fBody);
-  let fiscalSum=0;
+/* ===== 회계연도(캘린더연도) 기준 테이블 ===== */
+const fBody=document.getElementById('fiscalBody');
+clearTbody(fBody);
+let fiscalSum=0;
 
-  const firstAnniv = addYears(join,1);
-  // 1년차(입사연도 내 월차)
-  const endOfJoinYear = new Date(join.getFullYear(),11,31);
-  const monthsAll = monthlyAccruals(join, leave); // 전체 월차(만1년 전)
-  const monthsY1 = monthsAll.filter(d=> d.getFullYear()===join.getFullYear());
-  const monthsCarry = monthsAll.filter(d=> d.getFullYear()!==join.getFullYear()); // 2년차 @
+const firstAnniv = addYears(join,1);
 
-  const monthLabel = `매월 ${String(join.getDate()).padStart(2,'0')}일`;
+// 1년차(입사연도 내 월차)
+const monthsAll = monthlyAccruals(join, leave);              // 만1년 전까지의 월차 전부
+const monthsY1  = monthsAll.filter(d=> d.getFullYear()===join.getFullYear());     // 입사연도분
+const monthsCarry = monthsAll.filter(d=> d.getFullYear()!==join.getFullYear());   // 다음해로 넘어간 분(2년차 @)
+
+const monthLabel = `매월 ${String(join.getDate()).padStart(2,'0')}일`;
+fBody.appendChild(tr([
+  th('1년차'),
+  td(monthLabel,'yellow'),
+  td(String(monthsY1.length),'yellow right mono'),
+  td('0','right mono'),
+  td('0','right mono'),
+])); 
+fiscalSum += monthsY1.length;
+
+fBody.appendChild(tr([
+  th('2년차 @'),
+  td(monthLabel,'yellow'),
+  td(String(monthsCarry.length),'yellow right mono'),
+  td('0','right mono'),
+  td('0','right mono'),
+]));
+fiscalSum += monthsCarry.length;
+
+/* 2년차 정기연차(비례): 전년도(입사연도) 12/31까지 근속일수 비례 × 15
+   - 소수점 둘째자리 올림(= 소수 1자리 표시) */
+const endPrevYear = new Date(join.getFullYear(), 11, 31);    // 입사연도 12/31
+let prorateDays = 0;
+if (endPrevYear >= join) {
+  const serviceDaysPrev = daysInclusive(join, endPrevYear);  // 7/1~12/31 = 184일 등
+  const raw = (serviceDaysPrev / 365) * 15;
+  prorateDays = Math.ceil(raw * 10) / 10;                    // 둘째자리 올림 → 소수 1자리
+}
+const fiscalYear2 = firstAnniv.getFullYear();                // 입사연도 다음해(2년차)
+fBody.appendChild(tr([
+  th('2년차(정기·비례)'),
+  td(`${fiscalYear2}-01-01`,'yellow'),
+  td(prorateDays.toFixed(1),'yellow right mono'),
+  td('0','right mono'),
+  td('0','right mono'),
+]));
+fiscalSum += prorateDays;
+
+/* 3년차부터는 온전히 발생(정기연차 기준) */
+let fyYear = fiscalYear2 + 1;  // 3년차가 되는 해
+let fyN = 2;                    // 정기연차 N: 1=2년차, 2=3년차, ...
+let fyDate = addYears(firstAnniv, 1); // 만 2년 도달일 (3년차 시작 기준)
+while(!leave || fyDate <= leave){
+  const days = regularDaysByYearN(fyN);  // 3년차=15, 4~5년차=16, ... (상한 25)
   fBody.appendChild(tr([
-    th('1년차'),
-    td(monthLabel,'yellow'),
-    td(String(monthsY1.length),'yellow right mono'),
+    th(`${fyN+1}년차`),                      // 3년차부터 표시
+    td(`${fyYear}-01-01`,'yellow'),
+    td(String(days),'yellow right mono'),
     td('0','right mono'),
     td('0','right mono'),
-  ])); fiscalSum += monthsY1.length;
+  ]));
+  fiscalSum += days;
+  fyN++; fyYear++; fyDate = addYears(fyDate,1);
+  if(fyN>50) break;
+}
 
-  fBody.appendChild(tr([
-    th('2년차 @'),
-    td(monthLabel,'yellow'),
-    td(String(monthsCarry.length),'yellow right mono'),
-    td('0','right mono'),
-    td('0','right mono'),
-  ])); fiscalSum += monthsCarry.length;
+document.getElementById('fiscalSum').textContent = 
+  (Number.isFinite(fiscalSum) ? (Math.round(fiscalSum*10)/10).toString() : '0');
 
-  // 만1년 이후 정기연차: 그 연차가 속한 '캘린더연도'에 배정
-  let fyYear = firstAnniv.getFullYear();
-  let fyN = 1; // 정기연차 N
-  let fyDate = firstAnniv;
-  while(!leave || fyDate <= leave){
-    const days = regularDaysByYearN(fyN);
-    fBody.appendChild(tr([
-      th(`${fyN+1}년차`), // 표기용: 첫 정기연차를 '2년차'로 보이게
-      td(`${fyYear}-01-01`,'yellow'),
-      td(String(days),'yellow right mono'),
-      td('0','right mono'),
-      td('0','right mono'),
-    ]));
-    fiscalSum += days;
-    fyN++; fyYear++; fyDate = addYears(fyDate,1);
-    if(fyN>50) break;
-  }
-
-  document.getElementById('fiscalSum').textContent = fiscalSum.toString();
 }
 
 document.getElementById('calcBtn').addEventListener('click', calc);

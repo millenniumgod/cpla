@@ -234,34 +234,38 @@
       <div class="chip"><strong>퇴직금(법정)</strong><div class="val mono" id="kpiSev">0</div></div>
     </div>
 
-    <!-- 3. 퇴직금 -->
-    <div class="section-wrap">
-      <div class="table-wrap">
-        <table>
-          <tr><th class="sec-title sec3" colspan="8">3. 퇴직금</th></tr>
-          <tr>
-            <th>평균임금(1일)</th>
-            <td class="right mono" id="avgDaily2">0</td>
-            <th>퇴직금(법정)</th>
-            <td class="right mono" id="sevPay">0</td>
-            <!-- (4) 안내 문구 추가 -->
-            <td class="subtle" colspan="4">※ 지급이력이 있는 경우에만 기입</td>
-          </tr>
-          <!-- (4) 보험/중간정산 행 분리 -->
-          <tr>
-            <th>퇴직보험금</th>
-            <td class="right"><input id="insPay" type="number" value="0" /></td>
-            <th>중간정산/기지급</th>
-            <td class="right"><input id="paidPay" type="number" value="0" /></td>
-            <td colspan="4"></td>
-          </tr>
-          <tr>
-            <th>차인지급액</th>
-            <td class="right mono" id="diffPay" colspan="7">0</td>
-          </tr>
-        </table>
-      </div>
-    </div>
+<!-- 3. 퇴직금 -->
+<div class="section-wrap">
+  <div class="table-wrap">
+    <table>
+      <tr><th class="sec-title sec3" colspan="8">3. 퇴직금</th></tr>
+      <tr>
+        <th>평균임금(1일)</th>
+        <td class="right mono" id="avgDaily2">0</td>
+        <th>퇴직금(법정)</th>
+        <td class="right mono" id="sevPay">0</td>
+        <td colspan="4"></td>
+      </tr>
+      <!-- 안내 문구 행을 별도 추가 -->
+      <tr>
+        <td colspan="8" class="subtle">※ 지급이력이 있는 경우에만 기입</td>
+      </tr>
+      <!-- 보험/중간정산 입력 행 -->
+      <tr>
+        <th>퇴직보험금</th>
+        <td class="right"><input id="insPay" type="number" value="0" /></td>
+        <th>중간정산/기지급</th>
+        <td class="right"><input id="paidPay" type="number" value="0" /></td>
+        <td colspan="4"></td>
+      </tr>
+      <tr>
+        <th>차인지급액</th>
+        <td class="right mono" id="diffPay" colspan="7">0</td>
+      </tr>
+    </table>
+  </div>
+</div>
+
 
     <div class="row-actions">
       <button class="btn primary" id="btnCalc">퇴직금 계산</button>

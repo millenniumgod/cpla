@@ -82,27 +82,30 @@
 
 /* 차인지급액 강조 셀 */
 .highlight-cell{
-  background:#fffdf5;           /* 아주 연한 상아색 */
+  background:#fffdf5;           /* 연한 상아색 */
   border:2px solid #000;        /* 검정 테두리 */
   font-weight:800;
-  position:relative;            /* 모서리 보정용 ::after 기준 */
-  border-bottom:2px solid #000 !important; /* last-row 하단 테두리 지움 방지 */
+  position:relative;
+  border-bottom:2px solid #000 !important; 
+  border-radius:0 !important;   /* 셀 자체 둥근 모서리 제거 */
+  overflow:visible;
 }
 
-/* 둥근 모서리(우하단) 보정: .table-wrap의 border-radius(14px)에 맞춤 */
+/* 우하단 모서리 보정 */
 .highlight-cell.corner-fix::after{
   content:"";
   position:absolute;
-  right:-2px;                   /* 테두리 두께(2px)만큼 바깥으로 */
+  right:-2px;
   bottom:-2px;
-  width:16px;                   /* 반경 + 보정치 */
-  height:16px;
-  border-bottom-right-radius:14px;  /* .table-wrap과 동일 반경 */
-  border-right:2px solid #000;  
-  border-bottom:2px solid #000; 
+  width:18px;                    /* 약간 키워서 자연스럽게 */
+  height:18px;
+  border-bottom-right-radius:14px;   /* table-wrap과 동일 반경 */
+  border-right:2px solid #000;
+  border-bottom:2px solid #000;
+  background:#fffdf5;            /* 셀 배경색으로 채워서 자연스럽게 */
   pointer-events:none;
-  background:transparent;
 }
+
 
 </style>
 </head>

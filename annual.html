@@ -73,7 +73,7 @@
         <!-- 회계연도 기준 -->
         <div class="table-wrap">
           <table id="tblFiscal">
-            <tr><th class="sec-title" colspan="5">연차휴가 계산기 (회계연도 기준: 캘린더연도)</th></tr>
+            <tr><th class="sec-title" colspan="5">연차휴가 계산기 (회계연도 기준)</th></tr>
             <tr>
               <th style="width:20%">구분</th>
               <th class="yellow">발생일자</th>
@@ -293,7 +293,7 @@ if (endPrevYear >= join) {
 }
 const fiscalYear2 = firstAnniv.getFullYear();                // 입사연도 다음해(2년차)
 fBody.appendChild(tr([
-  th('2년차(정기·비례)'),
+  th('2년차(비례연차)'),
   td(`${fiscalYear2}-01-01`,'yellow'),
   td(prorateDays.toFixed(1),'yellow right mono'),
   td('0','right mono'),

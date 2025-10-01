@@ -1,82 +1,77 @@
 <!doctype html>
-<html lang="ko">
+<html lang="ko" data-theme="light">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>평균임금 및 퇴직금 산정내역</title>
 <meta name="description" content="평균임금 및 퇴직금 산정내역 - 3개월(최대 4개월 구간) 임금, 평균임금, 퇴직금 자동 계산" />
 <style>
-  /* ===== Modern Minimal UI (Dark, simple) ===== */
+  /* ===== THEME TOKENS ===== */
   :root{
-    --bg:#0a0e13;
-    --surface:#0f1520;
-    --elev:#121a26;
-    --line:#1f2a3a;
-    --muted:#8ea4b8;
-    --text:#eef4fb;
-    --title:#ffffff;
-    --accent:#62a8ff;
-    --accent-2:#19c37d;
-    --danger:#ff6b6b;
-    --ring: rgba(98,168,255,.35);
+    /* light (default) */
+    --bg:#f6f8fb; --surface:#ffffff; --elev:#ffffff;
+    --line:#e5eaf0; --muted:#516173; --text:#0d1b2a; --title:#0a0f18;
+    --accent:#2a66ff; --accent-2:#19a06a; --danger:#e24545; --ring:rgba(42,102,255,.22);
   }
+  [data-theme="dark"]{
+    --bg:#0a0e13; --surface:#0f1520; --elev:#121a26;
+    --line:#1f2a3a; --muted:#8ea4b8; --text:#eef4fb; --title:#ffffff;
+    --accent:#62a8ff; --accent-2:#19c37d; --danger:#ff6b6b; --ring:rgba(98,168,255,.35);
+  }
+
+  /* ===== BASE ===== */
   *{box-sizing:border-box}
   html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
     font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,Malgun Gothic,Helvetica,Arial,sans-serif}
   a{color:var(--accent);text-decoration:none}
+
+  /* App bar */
   .appbar{
     position:sticky;top:0;z-index:10;
-    display:flex;justify-content:space-between;align-items:center;
-    gap:12px;padding:12px 16px;background:linear-gradient(180deg,#0a0e13 0%,rgba(10,14,19,.7) 100%);
-    border-bottom:1px solid var(--line);backdrop-filter:saturate(140%) blur(6px)
+    display:flex;justify-content:space-between;align-items:center;gap:12px;
+    padding:12px 16px;background:var(--bg);border-bottom:1px solid var(--line);
+    backdrop-filter:saturate(140%) blur(6px)
   }
-  .brand{font-weight:800;letter-spacing:-.2px}
-  .brand span{opacity:.7;font-weight:600}
-  .bar-actions{display:flex;gap:10px;align-items:center}
+  .brand{font-weight:800;letter-spacing:-.2px;color:var(--title)}
+  .brand span{opacity:.65;font-weight:600}
+  .bar-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
   select, .btn, input[type="text"], input[type="number"]{
     background:var(--surface);color:var(--text);border:1px solid var(--line);border-radius:12px;
     padding:10px 12px;outline:none;transition:.15s ease;box-shadow:0 0 0 0 var(--ring)
   }
-  select:hover, .btn:hover, input[type="text"]:hover, input[type="number"]:hover{border-color:#2a3a54}
-  select:focus, input[type="text"]:focus, input[type="number"]:focus{box-shadow:0 0 0 6px var(--ring);border-color:#2f7ae5}
+  select:hover, .btn:hover, input[type="text"]:hover, input[type="number"]:hover{border-color:color-mix(in oklab, var(--accent) 30%, var(--line))}
+  select:focus, input[type="text"]:focus, input[type="number"]:focus{box-shadow:0 0 0 6px var(--ring);border-color:var(--accent)}
   .btn{cursor:pointer;font-weight:700}
-  .btn.primary{border-color:#2f7ae5;background:linear-gradient(180deg,#1a2a45,#152238)}
+  .btn.primary{border-color:var(--accent);background:color-mix(in oklab, var(--accent) 12%, var(--surface));}
   .btn.ghost{background:var(--surface)}
+  .toggle{display:inline-flex;align-items:center;gap:8px;border-radius:999px;padding:8px 12px}
+  .toggle span{font-size:12px;color:var(--muted)}
+
+  /* Layout */
   .container{max-width:1100px;margin:28px auto 80px;padding:0 16px}
-  .sheet{
-    background:var(--elev);border:1px solid var(--line);border-radius:18px;
-    overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,.35)
-  }
-  .sheet h1{
-    margin:0;padding:18px 18px 16px;background:linear-gradient(180deg,#121a26,#0f1520);
-    text-align:center;font-size:20px;font-weight:800;color:var(--title);letter-spacing:.6px;border-bottom:1px solid var(--line)
-  }
-  table{width:100%;border-collapse:separate;border-spacing:0}
-  th,td{border-bottom:1px solid var(--line);padding:12px 12px;vertical-align:middle}
-  th{background:#121a26a6;font-weight:700}
-  tr:last-child td,tr:last-child th{border-bottom:0}
-  .sec-title{background:#131c2a;font-weight:800;text-align:left}
+  .sheet{background:var(--elev);border:1px solid var(--line);border-radius:18px;overflow:hidden;box-shadow:0 8px 30px color-mix(in oklab, #000 20%, transparent)}
+  .sheet h1{margin:0;padding:18px 18px 16px;background:color-mix(in oklab, var(--surface) 92%, var(--bg));
+    text-align:center;font-size:20px;font-weight:800;color:var(--title);letter-spacing:.6px;border-bottom:1px solid var(--line)}
   .subtle{font-size:12px;color:var(--muted)}
-  .mono{font-variant-numeric:tabular-nums}
+
+  /* Tables (responsive) */
+  .section-wrap{padding:12px 16px}
+  .table-wrap{border:1px solid var(--line);border-radius:14px;overflow:hidden;overflow-x:auto;background:var(--surface)}
+  table{width:100%;border-collapse:separate;border-spacing:0;min-width:840px}
+  th,td{border-bottom:1px solid var(--line);padding:12px 12px;vertical-align:middle}
+  th{background:color-mix(in oklab, var(--surface) 90%, var(--bg));font-weight:700}
+  tr:last-child td,tr:last-child th{border-bottom:0}
+  .sec-title{background:color-mix(in oklab, var(--surface) 85%, var(--bg));font-weight:800;text-align:left}
   input[type="number"]{text-align:right}
+  .mono{font-variant-numeric:tabular-nums}
   .right{text-align:right}
-  .row-actions{display:flex;gap:10px;align-items:center;padding:14px 16px}
-  .note{
-    padding:16px 18px;border-top:1px solid var(--line);background:linear-gradient(180deg,#101723,#0f1520);
-    color:var(--muted);line-height:1.7;font-size:13px
-  }
   .kpi{display:flex;gap:18px;flex-wrap:wrap;padding:16px}
-  .chip{
-    background:#0e1623;border:1px solid var(--line);padding:10px 12px;border-radius:12px;min-width:160px
-  }
-  .chip strong{display:block;font-size:12px;color:#a9bed1;margin-bottom:4px}
+  .chip{background:var(--surface);border:1px solid var(--line);padding:12px;border-radius:12px;min-width:180px}
+  .chip strong{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
   .chip .val{font-size:18px;font-weight:800}
-  .ok{color:var(--accent-2);font-weight:800}
-  .warn{color:var(--danger);font-weight:800}
-  /* compact inputs in table */
-  td > input[type="text"], td > input[type="number"]{width:100%}
-  /* subtle corners for table sections */
-  table.section{margin:0 16px 16px;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+
+  .row-actions{display:flex;gap:10px;align-items:center;padding:16px;border-top:1px solid var(--line);background:var(--surface)}
+  .note{padding:18px;border-top:1px solid var(--line);background:var(--surface);color:var(--muted);line-height:1.7;font-size:13px;border-bottom-left-radius:18px;border-bottom-right-radius:18px}
 </style>
 </head>
 <body>
@@ -93,6 +88,10 @@
       <option value="./hours52.html">주52시간 계산기</option>
       <option value="./">메인</option>
     </select>
+
+    <button id="themeBtn" class="btn toggle" type="button" title="다크 모드 전환">
+      <span id="themeIcon">🌙</span><span>다크 모드</span>
+    </button>
   </div>
 </div>
 
@@ -100,100 +99,106 @@
   <div class="sheet">
     <h1>평균임금 및 퇴직금 산정내역</h1>
 
-    <!-- 1. 인적사항(간소화) -->
-    <table class="section">
-      <tr><th class="sec-title" colspan="8">1. 인적사항</th></tr>
-      <tr>
-        <th style="width:14%">입사연월일</th>
-        <td><input id="joinDate" type="text" placeholder="yyyy-mm-dd" data-next="leaveDate" /></td>
-        <th style="width:14%">퇴사연월일</th>
-        <td><input id="leaveDate" type="text" placeholder="yyyy-mm-dd" data-next="p1s" /></td>
-        <th style="width:14%">근속 연수</th>
-        <td>
-          <span class="mono" id="svcY">0</span>년
-          <span class="mono" id="svcM">0</span>개월
-          <span class="mono" id="svcD">0</span>일
-        </td>
-        <th style="width:14%">총 근로일수</th>
-        <td class="right mono" id="svcDays">0</td>
-      </tr>
-    </table>
+    <!-- 1. 인적사항 -->
+    <div class="section-wrap">
+      <div class="table-wrap">
+        <table>
+          <tr><th class="sec-title" colspan="8">1. 인적사항</th></tr>
+          <tr>
+            <th style="width:14%">입사연월일</th>
+            <td><input id="joinDate" type="text" placeholder="yyyy-mm-dd" data-next="leaveDate" /></td>
+            <th style="width:14%">퇴사연월일</th>
+            <td><input id="leaveDate" type="text" placeholder="yyyy-mm-dd" data-next="p1s" /></td>
+            <th style="width:14%">근속 연수</th>
+            <td>
+              <span class="mono" id="svcY">0</span>년
+              <span class="mono" id="svcM">0</span>개월
+              <span class="mono" id="svcD">0</span>일
+            </td>
+            <th style="width:14%">총 근로일수</th>
+            <td class="right mono" id="svcDays">0</td>
+          </tr>
+        </table>
+      </div>
+    </div>
 
     <!-- 2. 평균임금의 계산 -->
-    <table class="section">
-      <tr><th class="sec-title" colspan="8">2. 평균임금의 계산</th></tr>
-      <tr><td class="subtle" colspan="8">※ 평균임금 = 최근 3개월 총임금 ÷ (최근 3개월 총일수 − 제외일수). 3개월이 4개월 구간으로 나뉠 수 있음.</td></tr>
+    <div class="section-wrap">
+      <div class="table-wrap">
+        <table>
+          <tr><th class="sec-title" colspan="8">2. 평균임금의 계산</th></tr>
+          <tr><td class="subtle" colspan="8">※ 평균임금 = 최근 3개월 총임금 ÷ (최근 3개월 총일수 − 제외일수). 3개월이 4개월 구간으로 나뉠 수 있음.</td></tr>
 
-      <!-- (1) 최근 3개월(최대 4구간) -->
-      <tr><th colspan="8">2-1) 최근 3개월 기간(최대 4구간)</th></tr>
-      <tr>
-        <th style="width:14%">구간</th>
-        <th>시작일</th>
-        <th>종료일</th>
-        <th style="width:14%">일수(자동)</th>
-        <th colspan="2">임금(급여/수당 등)</th>
-        <th colspan="2">비고</th>
-      </tr>
-      <tr>
-        <td>①</td>
-        <td><input id="p1s" type="text" placeholder="yyyy-mm-dd" data-next="p1e" /></td>
-        <td><input id="p1e" type="text" placeholder="yyyy-mm-dd" data-next="p2s" /></td>
-        <td class="right mono" id="p1d">0</td>
-        <td colspan="2"><input id="p1w" type="number" value="0" /></td>
-        <td colspan="2" class="subtle">예: 7/10~7/31</td>
-      </tr>
-      <tr>
-        <td>②</td>
-        <td><input id="p2s" type="text" placeholder="yyyy-mm-dd" data-next="p2e" /></td>
-        <td><input id="p2e" type="text" placeholder="yyyy-mm-dd" data-next="p3s" /></td>
-        <td class="right mono" id="p2d">0</td>
-        <td colspan="2"><input id="p2w" type="number" value="0" /></td>
-        <td colspan="2" class="subtle">예: 8/1~8/31</td>
-      </tr>
-      <tr>
-        <td>③</td>
-        <td><input id="p3s" type="text" placeholder="yyyy-mm-dd" data-next="p3e" /></td>
-        <td><input id="p3e" type="text" placeholder="yyyy-mm-dd" data-next="p4s" /></td>
-        <td class="right mono" id="p3d">0</td>
-        <td colspan="2"><input id="p3w" type="number" value="0" /></td>
-        <td colspan="2" class="subtle">예: 9/1~9/30</td>
-      </tr>
-      <tr>
-        <td>④</td>
-        <td><input id="p4s" type="text" placeholder="yyyy-mm-dd" data-next="p4e" /></td>
-        <td><input id="p4e" type="text" placeholder="yyyy-mm-dd" data-next="excl" /></td>
-        <td class="right mono" id="p4d">0</td>
-        <td colspan="2"><input id="p4w" type="number" value="0" /></td>
-        <td colspan="2" class="subtle">예: 10/1~10/10</td>
-      </tr>
-      <tr>
-        <th>제외일수 합계</th>
-        <td colspan="2"><input id="excl" type="number" value="0" /></td>
-        <th>총일수(달력일)</th>
-        <td class="right mono" id="totDays">0</td>
-        <th>분모(총일수−제외)</th>
-        <td class="right mono" id="effDays" colspan="2">0</td>
-      </tr>
-      <tr>
-        <th>최근3개월 임금 합계</th>
-        <td class="right mono" id="wageSum" colspan="2">0</td>
-        <th>평균임금(1일)</th>
-        <td class="right mono" id="avgDaily">0</td>
-        <th>평균임금(30일분)</th>
-        <td class="right mono" id="avg30" colspan="2">0</td>
-      </tr>
+          <tr><th colspan="8">2-1) 최근 3개월 기간(최대 4구간)</th></tr>
+          <tr>
+            <th style="width:14%">구간</th>
+            <th>시작일</th>
+            <th>종료일</th>
+            <th style="width:14%">일수(자동)</th>
+            <th colspan="2">임금(급여/수당 등)</th>
+            <th colspan="2">비고</th>
+          </tr>
+          <tr>
+            <td>①</td>
+            <td><input id="p1s" type="text" placeholder="yyyy-mm-dd" data-next="p1e" /></td>
+            <td><input id="p1e" type="text" placeholder="yyyy-mm-dd" data-next="p2s" /></td>
+            <td class="right mono" id="p1d">0</td>
+            <td colspan="2"><input id="p1w" type="number" value="0" /></td>
+            <td colspan="2" class="subtle">예: 7/10~7/31</td>
+          </tr>
+          <tr>
+            <td>②</td>
+            <td><input id="p2s" type="text" placeholder="yyyy-mm-dd" data-next="p2e" /></td>
+            <td><input id="p2e" type="text" placeholder="yyyy-mm-dd" data-next="p3s" /></td>
+            <td class="right mono" id="p2d">0</td>
+            <td colspan="2"><input id="p2w" type="number" value="0" /></td>
+            <td colspan="2" class="subtle">예: 8/1~8/31</td>
+          </tr>
+          <tr>
+            <td>③</td>
+            <td><input id="p3s" type="text" placeholder="yyyy-mm-dd" data-next="p3e" /></td>
+            <td><input id="p3e" type="text" placeholder="yyyy-mm-dd" data-next="p4s" /></td>
+            <td class="right mono" id="p3d">0</td>
+            <td colspan="2"><input id="p3w" type="number" value="0" /></td>
+            <td colspan="2" class="subtle">예: 9/1~9/30</td>
+          </tr>
+          <tr>
+            <td>④</td>
+            <td><input id="p4s" type="text" placeholder="yyyy-mm-dd" data-next="p4e" /></td>
+            <td><input id="p4e" type="text" placeholder="yyyy-mm-dd" data-next="excl" /></td>
+            <td class="right mono" id="p4d">0</td>
+            <td colspan="2"><input id="p4w" type="number" value="0" /></td>
+            <td colspan="2" class="subtle">예: 10/1~10/10</td>
+          </tr>
+          <tr>
+            <th>제외일수 합계</th>
+            <td colspan="2"><input id="excl" type="number" value="0" /></td>
+            <th>총일수(달력일)</th>
+            <td class="right mono" id="totDays">0</td>
+            <th>분모(총일수−제외)</th>
+            <td class="right mono" id="effDays" colspan="2">0</td>
+          </tr>
+          <tr>
+            <th>최근3개월 임금 합계</th>
+            <td class="right mono" id="wageSum" colspan="2">0</td>
+            <th>평균임금(1일)</th>
+            <td class="right mono" id="avgDaily">0</td>
+            <th>평균임금(30일분)</th>
+            <td class="right mono" id="avg30" colspan="2">0</td>
+          </tr>
 
-      <!-- (2) 연차/상여 3개월분 -->
-      <tr><th colspan="8">2-2) 연차수당·상여금 (최근 3개월 귀속분만 입력, 선택)</th></tr>
-      <tr>
-        <th>연차수당 3개월분</th>
-        <td colspan="2"><input id="ann3m" type="number" value="0" /></td>
-        <th>상여금 3개월분</th>
-        <td colspan="2"><input id="bon3m" type="number" value="0" /></td>
-        <th>총 임금(가산 후)</th>
-        <td class="right mono" id="allSum">0</td>
-      </tr>
-    </table>
+          <tr><th colspan="8">2-2) 연차수당·상여금 (최근 3개월 귀속분만 입력, 선택)</th></tr>
+          <tr>
+            <th>연차수당 3개월분</th>
+            <td colspan="2"><input id="ann3m" type="number" value="0" /></td>
+            <th>상여금 3개월분</th>
+            <td colspan="2"><input id="bon3m" type="number" value="0" /></td>
+            <th>총 임금(가산 후)</th>
+            <td class="right mono" id="allSum">0</td>
+          </tr>
+        </table>
+      </div>
+    </div>
 
     <!-- KPI glance -->
     <div class="kpi">
@@ -203,48 +208,71 @@
     </div>
 
     <!-- 3. 퇴직금 -->
-    <table class="section">
-      <tr><th class="sec-title" colspan="8">3. 퇴직금</th></tr>
-      <tr>
-        <th>평균임금(1일)</th>
-        <td class="right mono" id="avgDaily2">0</td>
-        <th>퇴직금(법정)</th>
-        <td class="right mono" id="sevPay">0</td>
-        <th>퇴직보험금</th>
-        <td class="right"><input id="insPay" type="number" value="0" /></td>
-        <th>중간정산/기지급</th>
-        <td class="right"><input id="paidPay" type="number" value="0" /></td>
-      </tr>
-      <tr>
-        <th>차인지급액</th>
-        <td class="right mono" id="diffPay" colspan="7">0</td>
-      </tr>
-    </table>
+    <div class="section-wrap">
+      <div class="table-wrap">
+        <table>
+          <tr><th class="sec-title" colspan="8">3. 퇴직금</th></tr>
+          <tr>
+            <th>평균임금(1일)</th>
+            <td class="right mono" id="avgDaily2">0</td>
+            <th>퇴직금(법정)</th>
+            <td class="right mono" id="sevPay">0</td>
+            <th>퇴직보험금</th>
+            <td class="right"><input id="insPay" type="number" value="0" /></td>
+            <th>중간정산/기지급</th>
+            <td class="right"><input id="paidPay" type="number" value="0" /></td>
+          </tr>
+          <tr>
+            <th>차인지급액</th>
+            <td class="right mono" id="diffPay" colspan="7">0</td>
+          </tr>
+        </table>
+      </div>
+    </div>
 
     <div class="row-actions">
-      <button class="btn ghost" id="btnAuto">퇴사일 기준 4구간 자동 생성</button>
       <button class="btn primary" id="btnCalc">퇴직금 계산</button>
       <span class="subtle">날짜는 8자리(예: 20241010) 입력만으로 자동 포맷·다음 칸 이동합니다.</span>
     </div>
 
-    <!-- 요청하신 '수정후' 문구 -->
+    <!-- 요청하신 최종 문구 -->
     <div class="note" id="legalNote">
-      * 퇴사연월일은 마지막 근무일 다음날을 입력<br>
-      * 퇴직금(법정) = 평균임금 × 30일 × (재직일수÷365). 근속 1년 미만은 퇴직금 미발생<br>
-      * 근로자퇴직급여보장법에 따른 퇴직금 계산기로 본 계산결과는 법적 의미가 없으며, 법률적 책임을 부담하지 않습니다.
+      퇴사연월일은 마지막 근무일 다음날을 입력<br>
+      퇴직금(법정) = 평균임금 × 30일 × (재직일수÷365). 근속 1년 미만은 퇴직금 미발생<br>
+      근로자퇴직급여보장법에 따른 퇴직금 계산기로 본 계산결과는 법적 의미가 없으며, 법률적 책임을 부담하지 않습니다.
     </div>
   </div>
 </div>
 
 <script>
-  const fmt = n => Number.isFinite(n) ? n.toLocaleString('ko-KR') : '0';
+  /* ===== Theme toggle (persist) ===== */
+  (function(){
+    const saved = localStorage.getItem('theme');
+    if(saved) document.documentElement.setAttribute('data-theme', saved);
+    updateThemeBtn();
+  })();
 
-  // 네비
+  function updateThemeBtn(){
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    document.getElementById('themeIcon').textContent = isDark ? '☀️' : '🌙';
+    document.getElementById('themeBtn').title = isDark ? '라이트 모드로' : '다크 모드로';
+    document.querySelector('#themeBtn span:last-child').textContent = isDark ? '라이트 모드' : '다크 모드';
+  }
+
+  document.getElementById('themeBtn').addEventListener('click', ()=>{
+    const cur = document.documentElement.getAttribute('data-theme') || 'light';
+    const next = cur === 'light' ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+    updateThemeBtn();
+  });
+
+  /* ===== Navigation ===== */
   document.getElementById('calcSelect').addEventListener('change', e=>{
     if(e.target.value) location.href = e.target.value;
   });
 
-  // 날짜 "20240101" -> "2024-01-01"
+  /* ===== Date UX: 20240101 -> 2024-01-01 ===== */
   function toYmd(val){
     const v = (val||'').replace(/\D/g,'');
     if(v.length !== 8) return null;
@@ -267,12 +295,13 @@
     el.addEventListener('blur', autoRecalc);
   }
 
+  /* ===== Date + Calc utils ===== */
   function daysInclusive(s, e){
     if(!s||!e) return 0;
     const S=new Date(s), E=new Date(e);
     return Math.max(0, Math.floor((E - S)/(1000*60*60*24)) + 1);
   }
-  // 근속일수: 퇴사일 '미포함'
+  // 근속: 퇴사일 미포함
   function serviceDaysExclusive(jd, ld){
     if(!jd||!ld) return 0;
     const S=new Date(jd), E=new Date(ld);
@@ -281,6 +310,7 @@
   function humanizeDays(days){
     const y=Math.floor(days/365), r=days%365, m=Math.floor(r/30), d=r%30; return {y,m,d};
   }
+  const fmt = n => Number.isFinite(n) ? n.toLocaleString('ko-KR') : '0';
 
   function updateTotals(){
     const trip=[['p1s','p1e','p1d'],['p2s','p2e','p2d'],['p3s','p3e','p3d'],['p4s','p4e','p4d']];
@@ -288,12 +318,13 @@
     trip.forEach(([sId,eId,dId])=>{
       const s=document.getElementById(sId).value;
       const e=document.getElementById(eId).value;
-      const d = daysInclusive(s,e);
-      totDays += d;
-      document.getElementById(dId).textContent = fmt(d);
+      const d=daysInclusive(s,e);
+      totDays+=d;
+      document.getElementById(dId).textContent=fmt(d);
     });
-    const excl = Number(document.getElementById('excl').value||0);
-    const effDays = Math.max(totDays - excl, 0);
+
+    const excl=Number(document.getElementById('excl').value||0);
+    const effDays=Math.max(totDays - excl, 0);
 
     const wages=['p1w','p2w','p3w','p4w'].map(id=>Number(document.getElementById(id).value||0));
     const wageSum=wages.reduce((a,b)=>a+b,0);
@@ -304,16 +335,15 @@
     const avgDaily = effDays>0 ? (allSum/effDays) : 0;
     const avg30 = avgDaily*30;
 
-    document.getElementById('totDays').textContent = fmt(totDays);
-    document.getElementById('effDays').textContent = fmt(effDays);
-    document.getElementById('wageSum').textContent = fmt(wageSum);
-    document.getElementById('allSum').textContent  = fmt(allSum);
-    document.getElementById('avgDaily').textContent= fmt(Math.round(avgDaily));
-    document.getElementById('avg30').textContent   = fmt(Math.round(avg30));
+    document.getElementById('totDays').textContent=fmt(totDays);
+    document.getElementById('effDays').textContent=fmt(effDays);
+    document.getElementById('wageSum').textContent=fmt(wageSum);
+    document.getElementById('allSum').textContent=fmt(allSum);
+    document.getElementById('avgDaily').textContent=fmt(Math.round(avgDaily));
+    document.getElementById('avg30').textContent=fmt(Math.round(avg30));
     document.getElementById('avgDaily2').textContent=fmt(Math.round(avgDaily));
 
-    // KPI
-    document.getElementById('kpiAvg').textContent = fmt(Math.round(avgDaily));
+    document.getElementById('kpiAvg').textContent=fmt(Math.round(avgDaily));
   }
 
   function updateService(){
@@ -322,43 +352,11 @@
     const svc=serviceDaysExclusive(jd, ld);
     const h=humanizeDays(svc);
     document.getElementById('svcDays').textContent=fmt(svc);
-    document.getElementById('svcY').textContent=h.y;
-    document.getElementById('svcM').textContent=h.m;
-    document.getElementById('svcD').textContent=h.d;
+    document.getElementById('svcY').textContent=h.y; document.getElementById('svcM').textContent=h.m; document.getElementById('svcD').textContent=h.d;
     document.getElementById('kpiSvc').textContent=fmt(svc);
   }
 
   function autoRecalc(){ updateService(); updateTotals(); }
-
-  // 자동 4구간
-  document.getElementById('btnAuto').addEventListener('click', ()=>{
-    const ld=document.getElementById('leaveDate').value;
-    if(!ld){ alert('퇴사연월일을 먼저 입력하세요.'); return; }
-    const L=new Date(ld);
-    const S=new Date(L); S.setMonth(S.getMonth()-3);
-
-    const y1=S.getFullYear(), m1=S.getMonth();
-    const p1s=new Date(y1,m1,S.getDate());
-    const p1e=new Date(y1,m1+1,0);
-
-    const mid=[]; let cur=new Date(y1,m1+1,1);
-    while(cur < new Date(L.getFullYear(), L.getMonth(), 1)){
-      mid.push([new Date(cur.getFullYear(),cur.getMonth(),1),
-                new Date(cur.getFullYear(),cur.getMonth()+1,0)]);
-      cur.setMonth(cur.getMonth()+1);
-    }
-    const p4s=new Date(L.getFullYear(), L.getMonth(), 1);
-    const p4e=L;
-
-    const rows=[[p1s,p1e], mid[0]||[null,null], mid[1]||[null,null], [p4s,p4e]];
-    const ids=[['p1s','p1e'],['p2s','p2e'],['p3s','p3e'],['p4s','p4e']];
-    rows.forEach((r,i)=>{
-      const [s,e]=r; const sEl=document.getElementById(ids[i][0]); const eEl=document.getElementById(ids[i][1]);
-      if(s && e){ sEl.value=s.toISOString().slice(0,10); eEl.value=e.toISOString().slice(0,10); }
-      else{ sEl.value=""; eEl.value=""; }
-    });
-    autoRecalc();
-  });
 
   // 입력 바인딩
   ['p1s','p1e','p2s','p2e','p3s','p3e','p4s','p4e','p1w','p2w','p3w','p4w','excl','ann3m','bon3m']
@@ -370,7 +368,7 @@
     });
   ['joinDate','leaveDate','p1s','p1e','p2s','p2e','p3s','p3e','p4s','p4e'].forEach(attachDateInput);
 
-  // 퇴직금 계산
+  // 퇴직금 계산 버튼
   document.getElementById('btnCalc').addEventListener('click', ()=>{
     autoRecalc();
     const svc = Number((document.getElementById('svcDays').textContent||'0').replace(/,/g,''))||0;

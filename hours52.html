@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>주52시간 근무시간 계산기</title>
+  <style>
+    :root { --bg:#0b0f14; --card:#121821; --muted:#8aa0b2; --text:#eaf2f9; --warn:#ff6b6b; }
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,Malgun Gothic,sans-serif}
+    header,main,footer{max-width:1000px;margin:0 auto;padding:0 16px}
+    header{margin-top:24px}
+    .title{font-size:26px;font-weight:800}
+    .bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:8px 0 16px}
+    select{padding:10px 12px;border-radius:10px;border:1px solid #2b3950;background:#0f1620;color:var(--text)}
+    .card{background:var(--card);border:1px solid #1c2531;border-radius:16px;padding:16px;margin:10px 0}
+    label{display:block;margin:10px 0 6px;font-weight:600}
+    input{width:100%;padding:10px 12px;border-radius:10px;border:1px solid #293443;background:#0f1620;color:var(--text)}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .btn{margin-top:14px;padding:12px 14px;border-radius:12px;border:1px solid #2b3950;background:#0f1620;color:var(--text);font-weight:700;cursor:pointer}
+    .result{margin-top:14px;padding:12px;border-radius:12px;background:#0f1c12;border:1px solid #1b3a28}
+    .mono{font-variant-numeric:tabular-nums}
+    .warn{color:var(--warn);font-weight:700}
+    .muted{color:var(--muted);font-size:12px;line-height:1.6}
+    footer{color:var(--muted);font-size:12px;margin:24px 0 40px}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="title">주52시간 근무시간 계산기</div>
+    <div class="bar">
+      <label for="calcSelect">이동:</label>
+      <select id="calcSelect">
+        <option value="">— 선택 —</option>
+        <option value="severance.html">퇴직금 계산기</option>
+        <option value="annual.html">연차수당 계산기</option>
+        <option value="hours52.html" selected>주52시간 계산기</option>
+        <option value="./">메인으로</option>
+      </select>
+    </div>
+  </header>
+
+  <main>
+    <section class="card">
+      <div class="grid">
+        <div><label for="hMon">월</label><input id="hMon" type="number" value="0" /></div>
+        <div><label for="hTue">화</label><input id="hTue" type="number" value="0" /></div>
+      </div>
+      <div class="grid">
+        <div><label for="hWed">수</label><input id="hWed" type="number" value="0" /></div>
+        <div><label for="hThu">목</label><input id="hThu" type="number" value="0" /></div>
+      </div>
+      <div class="grid">
+        <div><label for="hFri">금</label><input id="hFri" type="number" value="0" /></div>
+        <div><label for="hSat">토</label><input id="hSat" type="number" value="0" /></div>
+      </div>
+      <div class="grid">
+        <div><label for="hSun">일</label><input id="hSun" type="number" value="0" /></div>
+        <div></div>
+      </div>
+
+      <button class="btn" id="btn52">주간 합계 계산</button>
+      <div class="result" id="wOut" hidden>
+        <div><strong>주간 합계:</strong> <span class="mono" id="wSum">0</span> 시간</div>
+        <div><strong>법정 40시간 초과?</strong> <span id="over40">-</span></div>
+        <div><strong>주52시간 초과?</strong> <span id="over52">-</span></div>
+      </div>
+
+      <p class="muted">※ 탄력·선택 근로, 특별연장 등 제도 운영 시 한도 해석이 달라질 수 있습니다.</p>
+    </section>
+  </main>
+
+  <footer>© <span id="y"></span> 노무 계산기</footer>
+
+  <script>
+    const fmt = n => n.toLocaleString('ko-KR');
+    document.getElementById('calcSelect').addEventListener('change', e=>{ if(e.target.value) location.href=e.target.value; });
+    document.getElementById('btn52').addEventListener('click', ()=>{
+      const ids=['hMon','hTue','hWed','hThu','hFri','hSat','hSun'];
+      const nums=ids.map(id=>Number(document.getElementById(id).value||0));
+      const sum=nums.reduce((a,b)=>a+b,0);
+      document.getElementById('wSum').textContent=fmt(sum);
+      document.getElementById('over40').innerHTML = sum>40?'<span class="warn">초과</span>':'정상';
+      document.getElementById('over52').innerHTML = sum>52?'<span class="warn">초과</span>':'정상';
+      document.getElementById('wOut').hidden=false;
+    });
+    document.getElementById('y').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>

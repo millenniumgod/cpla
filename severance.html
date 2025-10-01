@@ -1,166 +1,292 @@
 <!doctype html>
 <html lang="ko">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>퇴직금 계산기 (정교화)</title>
-  <meta name="description" content="평균임금 기준 퇴직금 계산: 최근 3개월 총임금 ÷ (총일수 − 제외일수) × 30 × (재직일수 ÷ 365)" />
-  <style>
-    :root { --bg:#0b0f14; --card:#121821; --muted:#8aa0b2; --text:#eaf2f9; --good:#19c37d; --warn:#ff6b6b; }
-    *{box-sizing:border-box}
-    html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,Malgun Gothic,sans-serif}
-    header,main,footer{max-width:1000px;margin:0 auto;padding:0 16px}
-    header{margin-top:24px}
-    .title{font-size:26px;font-weight:800}
-    .bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:8px 0 16px}
-    select{padding:10px 12px;border-radius:10px;border:1px solid #2b3950;background:#0f1620;color:var(--text)}
-    .card{background:var(--card);border:1px solid #1c2531;border-radius:16px;padding:16px;margin:10px 0}
-    label{display:block;margin:10px 0 6px;font-weight:600}
-    input{width:100%;padding:10px 12px;border-radius:10px;border:1px solid #293443;background:#0f1620;color:var(--text)}
-    .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-    .btn{margin-top:14px;padding:12px 14px;border-radius:12px;border:1px solid #2b3950;background:#0f1620;color:var(--text);font-weight:700;cursor:pointer}
-    .result{margin-top:14px;padding:12px;border-radius:12px;background:#0f1c12;border:1px solid #1b3a28}
-    .mono{font-variant-numeric:tabular-nums}
-    .muted{color:var(--muted);font-size:12px;line-height:1.6}
-    .warn{color:var(--warn);font-weight:700}
-    footer{color:var(--muted);font-size:12px;margin:24px 0 40px}
-    hr.sep{border:0;border-top:1px solid #203044;margin:12px 0}
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>평균임금 및 퇴직금 산정내역</title>
+<meta name="description" content="평균임금 및 퇴직금 산정내역 - 3개월 임금, 평균임금, 퇴직금 자동 계산" />
+<style>
+  :root{
+    --bg:#0b0f14; --paper:#111823; --line:#2a3649; --muted:#8aa0b2; --text:#eaf2f9;
+    --head:#192233; --accent:#4da3ff; --good:#19c37d; --warn:#ff6b6b;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,Malgun Gothic,Helvetica,Arial,sans-serif}
+  main{max-width:1060px;margin:18px auto 60px;padding:0 14px}
+  .sheet{background:var(--paper);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+  .sheet h1{margin:0;background:var(--head);text-align:center;padding:16px 10px;font-size:20px;letter-spacing:1px}
+  table{width:100%;border-collapse:collapse}
+  th,td{border:1px solid var(--line);padding:8px 10px;vertical-align:middle}
+  th{background:#142034}
+  .sec-title{background:#142034;font-weight:800}
+  .small{font-size:12px;color:var(--muted)}
+  .mono{font-variant-numeric:tabular-nums}
+  input[type="text"],input[type="number"],input[type="date"]{
+    width:100%;padding:8px 10px;border:1px solid #293443;border-radius:8px;background:#0f1620;color:var(--text)}
+  input[type="number"]{text-align:right}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+  .btn{display:inline-block;margin:10px 0;padding:10px 14px;border-radius:10px;border:1px solid #2c3b55;background:#0f1620;color:var(--text);cursor:pointer}
+  .right{text-align:right}
+  .muted{color:var(--muted)}
+  .note{padding:10px 12px;font-size:12px;color:var(--muted);line-height:1.6}
+  .bar{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid var(--line);background:#0f1620}
+  select{padding:8px 10px;border-radius:8px;border:1px solid #2c3b55;background:#0f1620;color:var(--text)}
+  .ok{color:var(--good);font-weight:700}
+  .warn{color:var(--warn);font-weight:700}
+</style>
 </head>
 <body>
-  <header>
-    <div class="title">퇴직금 계산기</div>
+<main>
+  <div class="sheet">
     <div class="bar">
-      <label for="calcSelect">이동:</label>
-      <select id="calcSelect">
-        <option value="">— 선택 —</option>
-        <option value="severance.html" selected>퇴직금 계산기</option>
-        <option value="annual.html">연차수당 계산기</option>
-        <option value="hours52.html">주52시간 계산기</option>
-        <option value="./">메인으로</option>
-      </select>
-    </div>
-  </header>
-
-  <main>
-    <section class="card">
-      <h3>① 재직기간</h3>
-      <div class="row">
-        <div>
-          <label for="joinDate">입사일</label>
-          <input id="joinDate" type="date" />
-        </div>
-        <div>
-          <label for="leaveDate">퇴사일</label>
-          <input id="leaveDate" type="date" />
-        </div>
-      </div>
-
-      <h3 style="margin-top:16px;">② 평균임금 산정(퇴직 전 3개월)</h3>
-      <div class="row">
-        <div>
-          <label for="last3Total">최근 3개월 총임금(원)</label>
-          <input id="last3Total" type="number" inputmode="numeric" placeholder="예: 기본급+정기상여+수당 등 포함 합계" />
-        </div>
-        <div>
-          <label for="last3Days">최근 3개월 총일수(보통 90)</label>
-          <input id="last3Days" type="number" inputmode="numeric" value="90" />
-        </div>
-      </div>
+      <strong>계산기 이동</strong>
       <div>
-        <label for="excludeDays">제외일수(무급휴직·무급병가·결근 등)</label>
-        <input id="excludeDays" type="number" inputmode="numeric" value="0" />
+        <select id="calcSelect">
+          <option value="">— 선택 —</option>
+          <option value="./severance.html" selected>퇴직금 계산기</option>
+          <option value="./annual.html">연차수당 계산기</option>
+          <option value="./hours52.html">주52시간 근무시간 계산기</option>
+          <option value="./">메인</option>
+        </select>
       </div>
+    </div>
 
-      <button class="btn" id="btnSev">퇴직금 계산</button>
+    <h1>평균임금 및 퇴직금 산정내역</h1>
 
-      <div class="result" id="sevOut" hidden>
-        <div><strong>총 재직일수:</strong> <span class="mono" id="svcDays">-</span> 일
-          (<span class="mono" id="svcY">-</span>년 <span class="mono" id="svcM">-</span>개월 <span class="mono" id="svcD">-</span>일)
-        </div>
-        <div><strong>평균임금(분모 일수):</strong> <span class="mono" id="denDays">-</span> 일</div>
-        <div><strong>평균임금(1일):</strong> <span class="mono" id="avgDaily">-</span> 원</div>
-        <div><strong>평균임금(30일분):</strong> <span class="mono" id="avg30">-</span> 원</div>
-        <hr class="sep">
-        <div id="eligWrap">
-          <strong>법정 요건:</strong> <span id="eligText">-</span>
-        </div>
-        <div id="sevWrap">
-          <strong>법정 퇴직금(간이):</strong> <span class="mono" id="sevPay">-</span> 원
-        </div>
-        <div class="muted" style="margin-top:10px" id="notes">
-          ※ 평균임금 = 최근 3개월 총임금 ÷ (총일수 − 제외일수).<br/>
-          ※ 재직기간 1년 미만은 법정 퇴직금 요건 미충족으로 0원 처리(특약/단협이 다르면 별도).<br/>
-          ※ 수당 포함 범위·휴직/결근 처리 등 회사 규정·판례에 따라 달라질 수 있습니다.
-        </div>
+    <!-- 1. 인적사항 -->
+    <table>
+      <tr><th class="sec-title" colspan="10">1. 인적사항</th></tr>
+      <tr>
+        <th>성명</th>
+        <td><input id="empName" type="text" placeholder="이름 입력" /></td>
+        <th>주소</th>
+        <td colspan="3"><input id="addr" type="text" placeholder="주소 (선택)" /></td>
+        <th>입사연월일</th>
+        <td><input id="joinDate" type="date" /></td>
+        <th>퇴사연월일</th>
+        <td><input id="leaveDate" type="date" /></td>
+      </tr>
+      <tr>
+        <th>근속 연수</th>
+        <td colspan="3">
+          <span class="mono" id="svcY">0</span> 년
+          <span class="mono" id="svcM">0</span> 개월
+          <span class="mono" id="svcD">0</span> 일
+        </td>
+        <th>시간</th><td class="right">—</td>
+        <th>총 근로일수</th>
+        <td class="right mono" id="svcDays">0</td>
+        <th>비고</th><td class="small">입·퇴사일 포함</td>
+      </tr>
+    </table>
+
+    <!-- 2. 평균임금의 계산 -->
+    <table>
+      <tr><th class="sec-title" colspan="10">2. 평균임금의 계산</th></tr>
+      <tr><th colspan="10" class="small">※ 평균임금 = 최근 3개월 총임금 ÷ (최근 3개월 총일수 − 제외일수)</th></tr>
+      <tr><th colspan="10">(1) 3개월간 월 급여</th></tr>
+      <tr>
+        <th>임금계(부터)</th>
+        <td><input id="m1s" type="date" /></td>
+        <td><input id="m2s" type="date" /></td>
+        <td><input id="m3s" type="date" /></td>
+        <th>계</th>
+        <td class="right mono" id="mSum" colspan="5">0</td>
+      </tr>
+      <tr>
+        <th>삭감계(까지)</th>
+        <td><input id="m1e" type="date" /></td>
+        <td><input id="m2e" type="date" /></td>
+        <td><input id="m3e" type="date" /></td>
+        <th>총 근로일수(일)</th>
+        <td class="right mono" id="denDays" colspan="5">0</td>
+      </tr>
+      <tr>
+        <th>총일수(달력일)</th>
+        <td class="right"><input id="m1d" type="number" value="0" /></td>
+        <td class="right"><input id="m2d" type="number" value="0" /></td>
+        <td class="right"><input id="m3d" type="number" value="0" /></td>
+        <th>제외일수(합계)</th>
+        <td class="right"><input id="excl" type="number" value="0" /></td>
+        <th>최근3개월 총일수</th>
+        <td class="right mono" id="totDays">0</td>
+        <th>분모(총일수−제외)</th>
+        <td class="right mono" id="effDays">0</td>
+      </tr>
+      <tr>
+        <th>기본급</th>
+        <td><input id="m1pay" type="number" value="0" /></td>
+        <td><input id="m2pay" type="number" value="0" /></td>
+        <td><input id="m3pay" type="number" value="0" /></td>
+        <th>계</th>
+        <td class="right mono" id="wageSum" colspan="5">0</td>
+      </tr>
+
+      <tr><th colspan="10">(2) 연차수당과 상여금</th></tr>
+      <tr>
+        <th>항목</th><th colspan="2">금액</th><th colspan="2">3개월분</th>
+        <th colspan="5" class="small">※ 필요 시 3개월분만 입력하세요(정기상여 분할 등은 자체 기준 따른 값 입력)</th>
+      </tr>
+      <tr>
+        <th>연차수당</th>
+        <td colspan="2"><input id="annTotal" type="number" value="0" /></td>
+        <td colspan="2"><input id="ann3m" type="number" value="0" /></td>
+        <td colspan="5" class="small">예: 연간 연차정산액 중 최근3개월 귀속분</td>
+      </tr>
+      <tr>
+        <th>상여금 총액</th>
+        <td colspan="2"><input id="bonTotal" type="number" value="0" /></td>
+        <td colspan="2"><input id="bon3m" type="number" value="0" /></td>
+        <td colspan="5" class="small">예: 반기/연간 정기상여의 최근3개월 해당분</td>
+      </tr>
+      <tr>
+        <th>총 임금액</th>
+        <td class="right mono" id="allSum" colspan="2">0</td>
+        <th>총 일수</th>
+        <td class="right mono" id="allDays" colspan="2">0</td>
+        <th>평균임금액(1일)</th>
+        <td class="right mono" id="avgDaily" colspan="3">0</td>
+      </tr>
+    </table>
+
+    <!-- 3. 퇴직금 -->
+    <table>
+      <tr><th class="sec-title" colspan="10">3. 퇴직금</th></tr>
+      <tr>
+        <th>평균임금</th>
+        <td class="right mono" id="avgDaily2">0</td>
+        <th>퇴직금(법정)</th>
+        <td class="right mono" id="sevPay">0</td>
+        <th>퇴직보험금</th>
+        <td class="right"><input id="insPay" type="number" value="0" /></td>
+        <th>중간정산금</th>
+        <td class="right"><input id="midPay" type="number" value="0" /></td>
+        <th>기지급퇴직금</th>
+        <td class="right"><input id="paidPay" type="number" value="0" /></td>
+      </tr>
+      <tr>
+        <th>차인지급액</th>
+        <td class="right mono" id="diffPay" colspan="9">0</td>
+      </tr>
+    </table>
+
+    <div style="padding:12px">
+      <button class="btn" id="btnAuto">① 최근 3개월 자동 채우기</button>
+      <button class="btn" id="btnCalc">② 계산하기</button>
+      <span class="small muted">※ ‘자동 채우기’는 퇴사일 기준 3개월 달력일을 자동 계산합니다.</span>
+      <div class="note">
+        • 재직기간 1년 미만은 법정 퇴직급여 의무가 없어 0원 처리됩니다(취업규칙 등 유리규정은 별도).<br/>
+        • 제외일수: 무급휴직/무급병가/결근 등 평균임금 분모에서 제외해야 하는 일수의 합계.<br/>
+        • 퇴직금(법정) = 평균임금×30 × (재직일수÷365)  (입퇴사일 포함 산정, 단순비례).<br/>
+        • 상여·연차의 3개월분 산정방식은 사업장 규정/판례 기준에 맞춰 입력하세요.
       </div>
-    </section>
-  </main>
+    </div>
+  </div>
+</main>
 
-  <footer>© <span id="y"></span> 노무 계산기</footer>
+<script>
+  const fmt = n => Number.isFinite(n) ? n.toLocaleString('ko-KR') : '0';
 
-  <script>
-    const fmt = n => n.toLocaleString('ko-KR');
+  // 드롭다운 네비
+  document.getElementById('calcSelect').addEventListener('change', e=>{
+    if(e.target.value) location.href = e.target.value;
+  });
 
-    // 월/일/년 차이 보기 좋게(단순 근사: 365일=1년, 30일=1개월로 표시)
-    function humanizeDays(daysTotal){
-      const y = Math.floor(daysTotal / 365);
-      const rem = daysTotal % 365;
-      const m = Math.floor(rem / 30);
-      const d = rem % 30;
-      return { y, m, d };
-    }
+  // (도움) 달의 일수 계산
+  function daysInMonth(y, m){ // m: 0~11
+    return new Date(y, m+1, 0).getDate();
+  }
 
-    function calcSeverance(){
-      const jd = document.getElementById('joinDate').value;
-      const ld = document.getElementById('leaveDate').value;
-      const total = Number(document.getElementById('last3Total').value||0);
-      const days3 = Number(document.getElementById('last3Days').value||0);
-      const excl = Number(document.getElementById('excludeDays').value||0);
-
-      if(!jd || !ld){ alert('입사일/퇴사일을 입력하세요.'); return; }
-      if(days3 <= 0){ alert('최근 3개월 총일수는 1 이상이어야 합니다.'); return; }
-      if(excl < 0){ alert('제외일수는 0 이상이어야 합니다.'); return; }
-      if(excl >= days3){ alert('제외일수가 총일수보다 크거나 같을 수 없습니다.'); return; }
-
-      // 재직일수(입사~퇴사, 양끝 포함)
-      const s = new Date(jd), e = new Date(ld);
-      const svcDays = Math.floor((e - s)/(1000*60*60*24)) + 1;
-
-      // 평균임금 분모 (총일수 - 제외일수)
-      const den = days3 - excl;
-
-      const avgDaily = den > 0 ? (total / den) : 0;
-      const avg30 = avgDaily * 30;
-
-      // 법정 요건: 1년(365일) 미만은 0원
-      const eligible = svcDays >= 365;
-
-      // 비례 산정(연 단위 비례, 업계 통상)
-      const sev = eligible ? (avg30 * (svcDays / 365)) : 0;
-
-      // 출력
-      const h = humanizeDays(Math.max(0, svcDays));
-      document.getElementById('svcDays').textContent = fmt(Math.max(0, svcDays));
-      document.getElementById('svcY').textContent = h.y;
-      document.getElementById('svcM').textContent = h.m;
-      document.getElementById('svcD').textContent = h.d;
-
-      document.getElementById('denDays').textContent = fmt(den);
-      document.getElementById('avgDaily').textContent = fmt(Math.max(0, Math.round(avgDaily)));
-      document.getElementById('avg30').textContent = fmt(Math.max(0, Math.round(avg30)));
-
-      document.getElementById('eligText').innerHTML = eligible ? '<span style="color:#19c37d;font-weight:700">요건 충족(1년 이상)</span>' : '<span class="warn">요건 미충족(1년 미만)</span>';
-      document.getElementById('sevPay').textContent = fmt(Math.max(0, Math.floor(sev)));
-      document.getElementById('sevOut').hidden = false;
-    }
-
-    document.getElementById('btnSev').addEventListener('click', calcSeverance);
-
-    document.getElementById('calcSelect').addEventListener('change', e=>{
-      if(e.target.value) location.href = e.target.value;
+  // ① 자동 채우기: 퇴사일 기준 직전 3개월 달력일/기간 자동
+  document.getElementById('btnAuto').addEventListener('click', ()=>{
+    const ld = document.getElementById('leaveDate').value;
+    if(!ld){ alert('퇴사연월일을 먼저 입력하세요.'); return; }
+    const L = new Date(ld);
+    // 최근 3개월: L월 포함하여 역으로 2개월 더
+    const months = [
+      new Date(L.getFullYear(), L.getMonth()-2, 1),
+      new Date(L.getFullYear(), L.getMonth()-1, 1),
+      new Date(L.getFullYear(), L.getMonth(), 1),
+    ];
+    // 각 월의 시작/끝/일수 채우기
+    const ids = [
+      ['m1s','m1e','m1d'],
+      ['m2s','m2e','m2d'],
+      ['m3s','m3e','m3d'],
+    ];
+    months.forEach((d, i)=>{
+      const y = d.getFullYear();
+      const m = d.getMonth(); // 0~11
+      const s = new Date(y, m, 1);
+      const e = new Date(y, m, daysInMonth(y, m));
+      document.getElementById(ids[i][0]).value = s.toISOString().slice(0,10);
+      document.getElementById(ids[i][1]).value = e.toISOString().slice(0,10);
+      document.getElementById(ids[i][2]).value = daysInMonth(y, m);
     });
-    document.getElementById('y').textContent = new Date().getFullYear();
-  </script>
+  });
+
+  // ② 계산
+  document.getElementById('btnCalc').addEventListener('click', ()=>{
+    // 1) 재직
+    const jd = document.getElementById('joinDate').value;
+    const ld = document.getElementById('leaveDate').value;
+    if(!jd || !ld){ alert('입사/퇴사 연월일을 입력하세요.'); return; }
+    const S = new Date(jd), E = new Date(ld);
+    const svcDays = Math.floor((E - S)/(1000*60*60*24)) + 1;
+    const y = Math.floor(svcDays/365), rem = svcDays%365, m = Math.floor(rem/30), d = rem%30;
+    document.getElementById('svcDays').textContent = fmt(Math.max(0, svcDays));
+    document.getElementById('svcY').textContent = y; document.getElementById('svcM').textContent = m; document.getElementById('svcD').textContent = d;
+
+    // 2) 최근 3개월 임금/일수
+    const mPay = [
+      Number(document.getElementById('m1pay').value||0),
+      Number(document.getElementById('m2pay').value||0),
+      Number(document.getElementById('m3pay').value||0),
+    ];
+    const mDays = [
+      Number(document.getElementById('m1d').value||0),
+      Number(document.getElementById('m2d').value||0),
+      Number(document.getElementById('m3d').value||0),
+    ];
+    const excl = Number(document.getElementById('excl').value||0);
+
+    const wageSum = mPay.reduce((a,b)=>a+b,0);
+    const totDays = mDays.reduce((a,b)=>a+b,0);
+    const effDays = Math.max(totDays - excl, 0);
+
+    document.getElementById('wageSum').textContent = fmt(wageSum);
+    document.getElementById('totDays').textContent = fmt(totDays);
+    document.getElementById('effDays').textContent = fmt(effDays);
+    document.getElementById('denDays').textContent = fmt(effDays); // 표의 '총 근로일수(일)'
+
+    // 3) 연차/상여 3개월분
+    const ann3m = Number(document.getElementById('ann3m').value||0);
+    const bon3m = Number(document.getElementById('bon3m').value||0);
+
+    // 4) 총임금, 평균임금
+    const allSum = wageSum + ann3m + bon3m;
+    const avgDaily = effDays>0 ? (allSum / effDays) : 0;
+
+    document.getElementById('mSum').textContent = fmt(allSum);
+    document.getElementById('allSum').textContent = fmt(allSum);
+    document.getElementById('allDays').textContent = fmt(effDays);
+    document.getElementById('avgDaily').textContent = fmt(Math.round(avgDaily));
+    document.getElementById('avgDaily2').textContent = fmt(Math.round(avgDaily));
+
+    // 5) 퇴직금(법정) = 평균임금×30 × (재직일수/365)
+    const eligible = svcDays >= 365;
+    const sev = eligible ? Math.floor(avgDaily * 30 * (svcDays/365)) : 0;
+    document.getElementById('sevPay').textContent = fmt(sev);
+
+    // 6) 차인지급액 = 퇴직금(법정) − (퇴직보험금+중간정산금+기지급퇴직금)
+    const ins = Number(document.getElementById('insPay').value||0);
+    const mid = Number(document.getElementById('midPay').value||0);
+    const paid = Number(document.getElementById('paidPay').value||0);
+    const diff = Math.max(sev - (ins+mid+paid), 0);
+    document.getElementById('diffPay').textContent = fmt(diff);
+  });
+</script>
 </body>
 </html>

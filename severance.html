@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>퇴직금 계산기</title>
+  <meta name="description" content="평균임금 기준 퇴직금 간이 계산기" />
+  <style>
+    :root { --bg:#0b0f14; --card:#121821; --muted:#8aa0b2; --text:#eaf2f9; --good:#19c37d; --warn:#ff6b6b; }
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,Malgun Gothic,sans-serif}
+    header,main,footer{max-width:1000px;margin:0 auto;padding:0 16px}
+    header{margin-top:24px}
+    .title{font-size:26px;font-weight:800}
+    .bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:8px 0 16px}
+    select{padding:10px 12px;border-radius:10px;border:1px solid #2b3950;background:#0f1620;color:var(--text)}
+    .card{background:var(--card);border:1px solid #1c2531;border-radius:16px;padding:16px;margin:10px 0}
+    label{display:block;margin:10px 0 6px;font-weight:600}
+    input{width:100%;padding:10px 12px;border-radius:10px;border:1px solid #293443;background:#0f1620;color:var(--text)}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .btn{margin-top:14px;padding:12px 14px;border-radius:12px;border:1px solid #2b3950;background:#0f1620;color:var(--text);font-weight:700;cursor:pointer}
+    .result{margin-top:14px;padding:12px;border-radius:12px;background:#0f1c12;border:1px solid #1b3a28}
+    .mono{font-variant-numeric:tabular-nums}
+    .muted{color:var(--muted);font-size:12px;line-height:1.6}
+    footer{color:var(--muted);font-size:12px;margin:24px 0 40px}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="title">퇴직금 계산기</div>
+    <div class="bar">
+      <label for="calcSelect">이동:</label>
+      <select id="calcSelect">
+        <option value="">— 선택 —</option>
+        <option value="severance.html" selected>퇴직금 계산기</option>
+        <option value="annual.html">연차수당 계산기</option>
+        <option value="hours52.html">주52시간 계산기</option>
+        <option value="./">메인으로</option>
+      </select>
+    </div>
+  </header>
+
+  <main>
+    <section class="card">
+      <div class="row">
+        <div>
+          <label for="joinDate">입사일</label>
+          <input id="joinDate" type="date" />
+        </div>
+        <div>
+          <label for="leaveDate">퇴사일</label>
+          <input id="leaveDate" type="date" />
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label for="last3Total">최근 3개월 총임금(원)</label>
+          <input id="last3Total" type="number" inputmode="numeric" placeholder="예: 9000000" />
+        </div>
+        <div>
+          <label for="last3Days">최근 3개월 총일수(보통 90)</label>
+          <input id="last3Days" type="number" inputmode="numeric" value="90" />
+        </div>
+      </div>
+
+      <button class="btn" id="btnSev">퇴직금 계산</button>
+      <div class="result" id="sevOut" hidden>
+        <div><strong>총 재직일수:</strong> <span class="mono" id="svcDays">-</span> 일</div>
+        <div><strong>평균임금(1일):</strong> <span class="mono" id="avgDaily">-</span> 원</div>
+        <div><strong>평균임금(30일분):</strong> <span class="mono" id="avg30">-</span> 원</div>
+        <hr style="border:0;border-top:1px solid #203044;margin:12px 0">
+        <div><strong>법정 퇴직금(간이):</strong> <span class="mono" id="sevPay">-</span> 원</div>
+      </div>
+
+      <p class="muted">※ 간이 참고용입니다. 수당 포함 범위, 휴직/결근, 평균임금/통상임금 차이 등에 따라 실제 금액은 달라질 수 있습니다.</p>
+    </section>
+  </main>
+
+  <footer>© <span id="y"></span> 노무 계산기</footer>
+
+  <script>
+    const fmt = n => n.toLocaleString('ko-KR');
+    document.getElementById('calcSelect').addEventListener('change', e=>{ if(e.target.value) location.href=e.target.value; });
+    document.getElementById('btnSev').addEventListener('click', ()=>{
+      const jd = document.getElementById('joinDate').value;
+      const ld = document.getElementById('leaveDate').value;
+      const total = Number(document.getElementById('last3Total').value||0);
+      const days3 = Number(document.getElementById('last3Days').value||0);
+      if(!jd || !ld || !days3 || days3<=0){ alert('입사일/퇴사일/총일수를 확인하세요.'); return; }
+      const s = new Date(jd), e = new Date(ld);
+      const svcDays = Math.floor((e - s)/(1000*60*60*24)) + 1;
+      const avgDaily = total / days3;
+      const avg30 = avgDaily * 30;
+      const sev = avg30 * (svcDays / 365);
+      document.getElementById('svcDays').textContent = fmt(Math.max(0,svcDays));
+      document.getElementById('avgDaily').textContent = fmt(Math.max(0,Math.floor(avgDaily)));
+      document.getElementById('avg30').textContent = fmt(Math.max(0,Math.floor(avg30)));
+      document.getElementById('sevPay').textContent = fmt(Math.max(0,Math.floor(sev)));
+      document.getElementById('sevOut').hidden = false;
+    });
+    document.getElementById('y').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>

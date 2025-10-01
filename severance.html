@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>평균임금 및 퇴직금 산정내역</title>
-<meta name="description" content="평균임금 및 퇴직금 산정내역 - 3개월(최대 4개월 구간) 임금, 평균임금, 퇴직금 자동 계산" />
+<title>평균임금 및 퇴직금 계산기</title>
+<meta name="description" content="평균임금 및 퇴직금 계산기 - 3개월(최대 4개월 구간) 임금, 평균임금, 퇴직금 자동 계산" />
 <style>
   /* ===== THEME TOKENS ===== */
   :root{
@@ -13,22 +13,17 @@
     --line:#e5eaf0; --muted:#516173; --text:#0d1b2a; --title:#0a0f18;
     --accent:#2a66ff; --accent-2:#19a06a; --danger:#e24545; --ring:rgba(42,102,255,.22);
 
-    /* section header colors (light) */
-    --sec1-bg: color-mix(in oklab, #2a66ff 12%, var(--surface));
-    --sec2-bg: color-mix(in oklab, #19a06a 12%, var(--surface));
-    --sec3-bg: color-mix(in oklab, #ff8b2a 14%, var(--surface));
-    --sec-fg: var(--title);
+    /* section header unified color (from swatch: deep navy) */
+    --sec-bg:#0a2a60;  /* 필요 시 이 값만 바꾸면 됩니다 */
+    --sec-fg:#ffffff;
   }
   [data-theme="dark"]{
     --bg:#0a0e13; --surface:#0f1520; --elev:#121a26;
     --line:#1f2a3a; --muted:#8ea4b8; --text:#eef4fb; --title:#ffffff;
     --accent:#62a8ff; --accent-2:#19c37d; --danger:#ff6b6b; --ring:rgba(98,168,255,.35);
 
-    /* section header colors (dark) */
-    --sec1-bg: color-mix(in oklab, #62a8ff 18%, #0f1520);
-    --sec2-bg: color-mix(in oklab, #19c37d 18%, #0f1520);
-    --sec3-bg: color-mix(in oklab, #ffb066 20%, #0f1520);
-    --sec-fg: #fff;
+    --sec-bg:#0a2a60;  /* 다크에서도 동일 네이비로 유지 */
+    --sec-fg:#ffffff;
   }
 
   /* ===== BASE ===== */
@@ -73,10 +68,7 @@
   th,td{border-bottom:1px solid var(--line);padding:12px 12px;vertical-align:middle}
   th{background:color-mix(in oklab, var(--surface) 90%, var(--bg));font-weight:700}
   tr:last-child td,tr:last-child th{border-bottom:0}
-  .sec-title{font-weight:800;text-align:left;color:var(--sec-fg)}
-  .sec1{background:var(--sec1-bg)!important}
-  .sec2{background:var(--sec2-bg)!important}
-  .sec3{background:var(--sec3-bg)!important}
+  .sec-title{font-weight:800;text-align:left;background:var(--sec-bg)!important;color:var(--sec-fg)!important}
   input[type="number"]{text-align:right}
   .mono{font-variant-numeric:tabular-nums}
   .right{text-align:right}
@@ -112,23 +104,19 @@
 
 <div class="container">
   <div class="sheet">
-    <h1>평균임금 및 퇴직금 산정내역</h1>
+    <h1>평균임금 및 퇴직금 계산기</h1>
 
     <!-- 1. 인적사항 -->
     <div class="section-wrap">
       <div class="table-wrap">
         <table>
-          <tr><th class="sec-title sec1" colspan="8">1. 인적사항</th></tr>
-          <!-- (2) 입사/퇴사 → 아래 행에 근속/총근로일수 -->
+          <tr><th class="sec-title" colspan="8">1. 인적사항</th></tr>
           <tr>
             <th style="width:14%">입사연월일</th>
             <td><input id="joinDate" type="text" placeholder="yyyy-mm-dd" data-next="leaveDate" /></td>
             <th style="width:14%">퇴사연월일</th>
             <td><input id="leaveDate" type="text" placeholder="yyyy-mm-dd" data-next="p1s" /></td>
-            <th style="width:14%"></th>
-            <td></td>
-            <th style="width:14%"></th>
-            <td></td>
+            <th style="width:14%"></th><td></td><th style="width:14%"></th><td></td>
           </tr>
           <tr>
             <th>근속 연수</th>
@@ -149,7 +137,7 @@
     <div class="section-wrap">
       <div class="table-wrap">
         <table>
-          <tr><th class="sec-title sec2" colspan="8">2. 평균임금의 계산</th></tr>
+          <tr><th class="sec-title" colspan="8">2. 평균임금의 계산</th></tr>
           <tr><td class="subtle" colspan="8">※ 평균임금 = 최근 3개월 총임금 ÷ (최근 3개월 총일수 − 제외일수). 3개월이 4개월 구간으로 나뉠 수 있음.</td></tr>
 
           <tr><th colspan="8">2-1) 최근 3개월 기간(최대 4구간)</th></tr>
@@ -210,15 +198,14 @@
             <td class="right mono" id="avg30" colspan="2">0</td>
           </tr>
 
-          <tr><th colspan="8">2-2) 연차수당·상여금 (최근 3개월 귀속분만 입력, 선택)</th></tr>
+          <tr><th colspan="8">2-2) 연차수당·상여금 (입력 금액은 자동으로 3/12 반영)</th></tr>
           <tr>
-            <th>연차수당 3개월분</th>
+            <th>연차수당(금액 입력)</th>
             <td colspan="2"><input id="ann3m" type="number" value="0" /></td>
-            <th>상여금 3개월분</th>
+            <th>상여금(금액 입력)</th>
             <td colspan="2"><input id="bon3m" type="number" value="0" /></td>
-            <td colspan="2"></td>
+            <td colspan="2" class="subtle">※ 총임금에는 입력값 × 3/12만 합산</td>
           </tr>
-          <!-- (3) 총 임금(가산 후) 분리 -->
           <tr>
             <th>총 임금(가산 후)</th>
             <td class="right mono" id="allSum" colspan="7">0</td>
@@ -234,38 +221,35 @@
       <div class="chip"><strong>퇴직금(법정)</strong><div class="val mono" id="kpiSev">0</div></div>
     </div>
 
-<!-- 3. 퇴직금 -->
-<div class="section-wrap">
-  <div class="table-wrap">
-    <table>
-      <tr><th class="sec-title sec3" colspan="8">3. 퇴직금</th></tr>
-      <tr>
-        <th>평균임금(1일)</th>
-        <td class="right mono" id="avgDaily2">0</td>
-        <th>퇴직금(법정)</th>
-        <td class="right mono" id="sevPay">0</td>
-        <td colspan="4"></td>
-      </tr>
-      <!-- 안내 문구 행을 별도 추가 -->
-      <tr>
-        <td colspan="8" class="subtle">※ 아래 퇴직보험금 및 중간정산, 기지급금은 지급이력이 있는 경우에만 기입</td>
-      </tr>
-      <!-- 보험/중간정산 입력 행 -->
-      <tr>
-        <th>퇴직보험금</th>
-        <td class="right"><input id="insPay" type="number" value="0" /></td>
-        <th>중간정산/기지급금</th>
-        <td class="right"><input id="paidPay" type="number" value="0" /></td>
-        <td colspan="4"></td>
-      </tr>
-      <tr>
-        <th>차인지급액</th>
-        <td class="right mono" id="diffPay" colspan="7">0</td>
-      </tr>
-    </table>
-  </div>
-</div>
-
+    <!-- 3. 퇴직금 -->
+    <div class="section-wrap">
+      <div class="table-wrap">
+        <table>
+          <tr><th class="sec-title" colspan="8">3. 퇴직금</th></tr>
+          <tr>
+            <th>평균임금(1일)</th>
+            <td class="right mono" id="avgDaily2">0</td>
+            <th>퇴직금(법정)</th>
+            <td class="right mono" id="sevPay">0</td>
+            <td colspan="4"></td>
+          </tr>
+          <tr>
+            <td colspan="8" class="subtle">※ 아래 퇴직보험금 및 중간정산, 기지급금은 지급이력이 있는 경우에만 기입</td>
+          </tr>
+          <tr>
+            <th>퇴직보험금</th>
+            <td class="right"><input id="insPay" type="number" value="0" /></td>
+            <th>중간정산/기지급금</th>
+            <td class="right"><input id="paidPay" type="number" value="0" /></td>
+            <td colspan="4"></td>
+          </tr>
+          <tr>
+            <th>차인지급액</th>
+            <td class="right mono" id="diffPay" colspan="7">0</td>
+          </tr>
+        </table>
+      </div>
+    </div>
 
     <div class="row-actions">
       <button class="btn primary" id="btnCalc">퇴직금 계산</button>      
@@ -364,9 +348,14 @@
 
     const wages=['p1w','p2w','p3w','p4w'].map(id=>Number(document.getElementById(id).value||0));
     const wageSum=wages.reduce((a,b)=>a+b,0);
-    const ann3m=Number(document.getElementById('ann3m').value||0);
-    const bon3m=Number(document.getElementById('bon3m').value||0);
-    const allSum=wageSum+ann3m+bon3m;
+
+    /* (2) 연차/상여: 입력값을 3/12로 자동 반영 */
+    const annInput=Number(document.getElementById('ann3m').value||0);
+    const bonInput=Number(document.getElementById('bon3m').value||0);
+    const annAdj=annInput*(3/12);
+    const bonAdj=bonInput*(3/12);
+
+    const allSum=wageSum + annAdj + bonAdj;
 
     const avgDaily = effDays>0 ? (allSum/effDays) : 0;
     const avg30 = avgDaily*30;

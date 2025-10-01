@@ -1,79 +1,299 @@
 <!doctype html>
-<html lang="ko">
+<html lang="ko" data-theme="light">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>연차수당 계산기</title>
-  <style>
-    :root { --bg:#0b0f14; --card:#121821; --muted:#8aa0b2; --text:#eaf2f9; }
-    *{box-sizing:border-box}
-    html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,Malgun Gothic,sans-serif}
-    header,main,footer{max-width:1000px;margin:0 auto;padding:0 16px}
-    header{margin-top:24px}
-    .title{font-size:26px;font-weight:800}
-    .bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:8px 0 16px}
-    select{padding:10px 12px;border-radius:10px;border:1px solid #2b3950;background:#0f1620;color:var(--text)}
-    .card{background:var(--card);border:1px solid #1c2531;border-radius:16px;padding:16px;margin:10px 0}
-    label{display:block;margin:10px 0 6px;font-weight:600}
-    input{width:100%;padding:10px 12px;border-radius:10px;border:1px solid #293443;background:#0f1620;color:var(--text)}
-    .btn{margin-top:14px;padding:12px 14px;border-radius:12px;border:1px solid #2b3950;background:#0f1620;color:var(--text);font-weight:700;cursor:pointer}
-    .result{margin-top:14px;padding:12px;border-radius:12px;background:#0f1c12;border:1px solid #1b3a28}
-    .mono{font-variant-numeric:tabular-nums}
-    .muted{color:var(--muted);font-size:12px;line-height:1.6}
-    footer{color:var(--muted);font-size:12px;margin:24px 0 40px}
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>연차휴가 계산기 (입사일 기준 · 회계연도 기준)</title>
+<meta name="description" content="입사일/퇴사일을 입력하면 연차휴가가 자동 계산됩니다. (입사일 기준, 회계연도 기준 동시 표시)" />
+<style>
+  :root{
+    --bg:#f6f8fb; --surface:#fff; --line:#e5eaf0; --text:#0d1b2a; --muted:#516173;
+    --title:#0a0f18; --accent:#2a66ff; --ring:rgba(42,102,255,.22);
+    --sec-bg:#0a2a60; --sec-fg:#fff; --yellow:#fff9e6;
+  }
+  [data-theme="dark"]{
+    --bg:#0a0e13; --surface:#0f1520; --line:#1f2a3a; --text:#eef4fb; --muted:#8ea4b8;
+    --title:#fff; --accent:#62a8ff; --ring:rgba(98,168,255,.35);
+    --sec-bg:#0a2a60; --sec-fg:#fff; --yellow:#2a2412;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
+    font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,Malgun Gothic,Helvetica,Arial,sans-serif}
+  .appbar{position:sticky;top:0;z-index:10;display:flex;gap:12px;align-items:center;justify-content:space-between;
+    padding:12px 16px;background:var(--bg);border-bottom:1px solid var(--line);backdrop-filter:saturate(140%) blur(6px)}
+  .brand{font-weight:800;color:var(--title)}
+  .container{max-width:1100px;margin:24px auto 80px;padding:0 16px}
+  .sheet{background:var(--surface);border:1px solid var(--line);border-radius:18px;overflow:hidden;
+    box-shadow:0 8px 30px rgba(0,0,0,.08)}
+  .sheet h1{margin:0;padding:18px;text-align:center;font-size:20px;font-weight:800;color:var(--title);
+    border-bottom:1px solid var(--line);background:color-mix(in oklab, var(--surface) 92%, var(--bg))}
+  .controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line);background:var(--surface)}
+  .controls input{border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--surface);color:var(--text);
+    outline:none;transition:.15s;box-shadow:0 0 0 0 var(--ring)}
+  .controls input::placeholder{color:#9aa6b2}
+  .controls input:focus{border-color:var(--accent);box-shadow:0 0 0 6px var(--ring)}
+  .btn{border:1px solid var(--accent);border-radius:12px;padding:10px 12px;background:color-mix(in oklab, var(--accent) 12%, var(--surface));
+    font-weight:700;cursor:pointer}
+  .tables{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:16px}
+  @media (max-width: 900px){ .tables{grid-template-columns:1fr} }
+  .table-wrap{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--surface)}
+  table{width:100%;border-collapse:separate;border-spacing:0}
+  th,td{border-bottom:1px solid var(--line);padding:10px 10px;vertical-align:middle}
+  th{background:color-mix(in oklab, var(--surface) 90%, var(--bg));font-weight:700}
+  tr:last-child th, tr:last-child td{border-bottom:0}
+  .sec-title{background:var(--sec-bg)!important;color:var(--sec-fg)!important;text-align:left;font-weight:800}
+  .right{text-align:right}
+  .mono{font-variant-numeric:tabular-nums}
+  .yellow{background:var(--yellow)}
+  .note{padding:14px 16px;border-top:1px solid var(--line);color:var(--muted);font-size:13px}
+  .subtle{color:var(--muted);font-size:12px}
+</style>
 </head>
 <body>
-  <header>
-    <div class="title">연차수당 계산기</div>
-    <div class="bar">
-      <label for="calcSelect">이동:</label>
-      <select id="calcSelect">
-        <option value="">— 선택 —</option>
-        <option value="severance.html">퇴직금 계산기</option>
-        <option value="annual.html" selected>연차수당 계산기</option>
-        <option value="hours52.html">주52시간 계산기</option>
-        <option value="./">메인으로</option>
-      </select>
+  <div class="appbar">
+    <div class="brand">연차휴가 계산기</div>
+    <div>
+      <button id="themeBtn" class="btn" type="button">🌙 다크 모드</button>
     </div>
-  </header>
+  </div>
 
-  <main>
-    <section class="card">
-      <label for="annOccur">연차 발생일수</label>
-      <input id="annOccur" type="number" inputmode="numeric" value="15" />
-      <label for="annUsed">사용한 연차</label>
-      <input id="annUsed" type="number" inputmode="numeric" value="0" />
-      <label for="dailyWage">일급(원)</label>
-      <input id="dailyWage" type="number" inputmode="numeric" value="100000" />
+  <div class="container">
+    <div class="sheet">
+      <h1>연차휴가 계산기 (입사일 기준 · 회계연도 기준)</h1>
 
-      <button class="btn" id="btnAnn">연차수당 계산</button>
-      <div class="result" id="annOut" hidden>
-        <div><strong>미사용 연차일수:</strong> <span class="mono" id="annRemain">-</span> 일</div>
-        <hr style="border:0;border-top:1px solid #203044;margin:12px 0">
-        <div><strong>연차수당(간이):</strong> <span class="mono" id="annPay">-</span> 원</div>
+      <!-- 입력 영역 -->
+      <div class="controls">
+        <label>입사일 <input id="joinDate" type="text" placeholder="yyyy-mm-dd" data-next="leaveDate"></label>
+        <label>퇴사일 <input id="leaveDate" type="text" placeholder="yyyy-mm-dd"></label>
+        <button id="calcBtn" class="btn">계산</button>
+        <span class="subtle">날짜는 8자리(예: 20240712)만 입력해도 됩니다.</span>
       </div>
 
-      <p class="muted">※ 출근율 요건, 1년 미만 월차 등은 별도 규정이 적용될 수 있습니다.</p>
-    </section>
-  </main>
+      <div class="tables">
+        <!-- 회계연도 기준 -->
+        <div class="table-wrap">
+          <table id="tblFiscal">
+            <tr><th class="sec-title" colspan="5">연차휴가 계산기 (회계연도 기준: 캘린더연도)</th></tr>
+            <tr>
+              <th style="width:20%">구분</th>
+              <th class="yellow">발생일자</th>
+              <th class="yellow right">발생일수</th>
+              <th>기 사용일수</th>
+              <th>기 보상일수</th>
+            </tr>
+            <tbody id="fiscalBody"></tbody>
+            <tr>
+              <th>합계</th>
+              <td class="yellow"></td>
+              <td class="yellow right mono" id="fiscalSum">0</td>
+              <td class="right mono">0</td>
+              <td class="right mono">0</td>
+            </tr>
+          </table>
+          <div class="note">
+            * 1년차 월차는 입사연도 내에 도달한 월기념일만 계산, <b>2년차 @</b>는 첫 만 1년 이전에 다음 연도로 넘어간 월차 합계입니다.  
+            * 정기연차(15일/16일…): 해당 연차가 속한 캘린더연도에 표시합니다.
+          </div>
+        </div>
 
-  <footer>© <span id="y"></span> 노무 계산기</footer>
+        <!-- 입사일 기준 -->
+        <div class="table-wrap">
+          <table id="tblAnniv">
+            <tr><th class="sec-title" colspan="5">연차휴가 계산기 (입사일 기준)</th></tr>
+            <tr>
+              <th style="width:20%">근속년수</th>
+              <th class="yellow">발생일자</th>
+              <th class="yellow right">발생일수</th>
+              <th>기 사용일수</th>
+              <th>기 보상일수</th>
+            </tr>
+            <tbody id="annivBody"></tbody>
+            <tr>
+              <th>합계</th>
+              <td class="yellow"></td>
+              <td class="yellow right mono" id="annivSum">0</td>
+              <td class="right mono">0</td>
+              <td class="right mono">0</td>
+            </tr>
+          </table>
+          <div class="note">
+            * 1년 미만: 매월 만근 시 1일(최대 11일), 퇴사일 이전 도달분만 포함.  
+            * 1·2년 근속 각 15일, 이후 2년마다 1일 가산(최대 25일).
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-  <script>
-    const fmt = n => n.toLocaleString('ko-KR');
-    document.getElementById('calcSelect').addEventListener('change', e=>{ if(e.target.value) location.href=e.target.value; });
-    document.getElementById('btnAnn').addEventListener('click', ()=>{
-      const occur = Number(document.getElementById('annOccur').value||0);
-      const used = Number(document.getElementById('annUsed').value||0);
-      const daily = Number(document.getElementById('dailyWage').value||0);
-      const remain = Math.max(occur - used, 0);
-      const pay = remain * daily;
-      document.getElementById('annRemain').textContent = fmt(remain);
-      document.getElementById('annPay').textContent = fmt(Math.floor(pay));
-      document.getElementById('annOut').hidden = false;
-    });
-    document.getElementById('y').textContent = new Date().getFullYear();
-  </script>
+<script>
+/* ===== Theme toggle ===== */
+(function(){
+  const saved = localStorage.getItem('theme'); if(saved) document.documentElement.setAttribute('data-theme', saved);
+  updateThemeBtn();
+})();
+function updateThemeBtn(){
+  const dark = document.documentElement.getAttribute('data-theme')==='dark';
+  document.getElementById('themeBtn').textContent = dark ? '☀️ 라이트 모드' : '🌙 다크 모드';
+}
+document.getElementById('themeBtn').addEventListener('click', ()=>{
+  const cur = document.documentElement.getAttribute('data-theme') || 'light';
+  const next = cur==='light' ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('theme', next);
+  updateThemeBtn();
+});
+
+/* ===== Date input: 20240712 -> 2024-07-12 ===== */
+function toYmd(val){
+  const v=(val||'').replace(/\D/g,''); if(v.length!==8) return null;
+  const y=v.slice(0,4), m=v.slice(4,6), d=v.slice(6,8);
+  const mm=+m, dd=+d; if(mm<1||mm>12||dd<1||dd>31) return null;
+  return `${y}-${m}-${d}`;
+}
+['joinDate','leaveDate'].forEach(id=>{
+  const el=document.getElementById(id);
+  el.addEventListener('input', ()=>{
+    const fm=toYmd(el.value); if(fm){ el.value=fm; }
+  });
+});
+
+/* ===== Date helpers ===== */
+const dt = s => new Date(s);
+const fmtDate = d => d.toISOString().slice(0,10);
+function addMonths(date, n){
+  const d=new Date(date); const day=d.getDate();
+  d.setMonth(d.getMonth()+n);
+  // month-end safe
+  if(d.getDate()<day){ d.setDate(0); }
+  return d;
+}
+function addYears(date, n){
+  const d=new Date(date); d.setFullYear(d.getFullYear()+n); return d;
+}
+function daysBetween(a,b){ return Math.floor((dt(b)-dt(a))/(86400000)); }
+
+/* ===== Business logic ===== */
+
+// 1년 미만 월차: 입사일 기준 월기념일마다 1일, 첫 만 1년 도달 전, 퇴사 이전만
+function monthlyAccruals(join, leave){
+  const firstAnniv = addYears(join,1);
+  const end = leave && leave<firstAnniv ? leave : firstAnniv;
+  const dates=[];
+  let cur = addMonths(join,1);
+  while(cur <= end){
+    dates.push(new Date(cur));
+    cur = addMonths(cur,1);
+  }
+  // 정확히 end(=anniv) 당일은 월차 X로 처리(이미 1년 연차로 전환)
+  return dates.filter(d => d < firstAnniv && (!leave || d<=leave));
+}
+
+// 정기연차 일수: n=1 → 15, n=2 → 15, n=3~ → 16,17,18 … 2년마다 +1, 상한 25
+function regularDaysByYearN(n){
+  return Math.min(25, 15 + Math.floor((n-1)/2));
+}
+
+/* ===== Rendering ===== */
+function clearTbody(tbody){ while(tbody.firstChild) tbody.removeChild(tbody.firstChild); }
+function tr(cells){ const tr=document.createElement('tr'); cells.forEach(td=>tr.appendChild(td)); return tr; }
+function th(text){ const el=document.createElement('th'); el.textContent=text; return el; }
+function td(text, cls=''){ const el=document.createElement('td'); el.textContent=text; if(cls) el.className=cls; return el; }
+
+function calc(){
+  const jStr=document.getElementById('joinDate').value;
+  const lStr=document.getElementById('leaveDate').value;
+  if(!jStr) return;
+  const join = dt(jStr);
+  const leave = lStr ? dt(lStr) : null;
+
+  /* ===== 입사일 기준 테이블 ===== */
+  const aBody=document.getElementById('annivBody');
+  clearTbody(aBody);
+  let annivSum=0;
+
+  // 1년 미만 월차
+  const mDates = monthlyAccruals(join, leave);
+  if(mDates.length){
+    const firstMonthLabel = `매월 ${String(join.getDate()).padStart(2,'0')}일`;
+    aBody.appendChild(tr([
+      th('1년 미만'),
+      td(firstMonthLabel,'yellow'),
+      td(String(mDates.length),'yellow right mono'),
+      td('0','right mono'),
+      td('0','right mono'),
+    ]));
+    annivSum += mDates.length;
+  }
+
+  // 정기연차 (만1년 이후)
+  let n=1;
+  let genDate = addYears(join,1); // 첫 발생일 = 만1년 도달일
+  while(!leave || genDate <= leave){
+    const days = regularDaysByYearN(n);
+    aBody.appendChild(tr([
+      th(`${n}년근속`),
+      td(fmtDate(genDate),'yellow'),
+      td(String(days),'yellow right mono'),
+      td('0','right mono'),
+      td('0','right mono'),
+    ]));
+    annivSum += days;
+    n++; genDate = addYears(genDate,1);
+    if(n>50) break; // 안전장치
+  }
+  document.getElementById('annivSum').textContent = annivSum.toString();
+
+  /* ===== 회계연도(캘린더연도) 기준 테이블 ===== */
+  const fBody=document.getElementById('fiscalBody');
+  clearTbody(fBody);
+  let fiscalSum=0;
+
+  const firstAnniv = addYears(join,1);
+  // 1년차(입사연도 내 월차)
+  const endOfJoinYear = new Date(join.getFullYear(),11,31);
+  const monthsAll = monthlyAccruals(join, leave); // 전체 월차(만1년 전)
+  const monthsY1 = monthsAll.filter(d=> d.getFullYear()===join.getFullYear());
+  const monthsCarry = monthsAll.filter(d=> d.getFullYear()!==join.getFullYear()); // 2년차 @
+
+  const monthLabel = `매월 ${String(join.getDate()).padStart(2,'0')}일`;
+  fBody.appendChild(tr([
+    th('1년차'),
+    td(monthLabel,'yellow'),
+    td(String(monthsY1.length),'yellow right mono'),
+    td('0','right mono'),
+    td('0','right mono'),
+  ])); fiscalSum += monthsY1.length;
+
+  fBody.appendChild(tr([
+    th('2년차 @'),
+    td(monthLabel,'yellow'),
+    td(String(monthsCarry.length),'yellow right mono'),
+    td('0','right mono'),
+    td('0','right mono'),
+  ])); fiscalSum += monthsCarry.length;
+
+  // 만1년 이후 정기연차: 그 연차가 속한 '캘린더연도'에 배정
+  let fyYear = firstAnniv.getFullYear();
+  let fyN = 1; // 정기연차 N
+  let fyDate = firstAnniv;
+  while(!leave || fyDate <= leave){
+    const days = regularDaysByYearN(fyN);
+    fBody.appendChild(tr([
+      th(`${fyN+1}년차`), // 표기용: 첫 정기연차를 '2년차'로 보이게
+      td(`${fyYear}-01-01`,'yellow'),
+      td(String(days),'yellow right mono'),
+      td('0','right mono'),
+      td('0','right mono'),
+    ]));
+    fiscalSum += days;
+    fyN++; fyYear++; fyDate = addYears(fyDate,1);
+    if(fyN>50) break;
+  }
+
+  document.getElementById('fiscalSum').textContent = fiscalSum.toString();
+}
+
+document.getElementById('calcBtn').addEventListener('click', calc);
+</script>
 </body>
 </html>

@@ -12,11 +12,23 @@
     --bg:#f6f8fb; --surface:#ffffff; --elev:#ffffff;
     --line:#e5eaf0; --muted:#516173; --text:#0d1b2a; --title:#0a0f18;
     --accent:#2a66ff; --accent-2:#19a06a; --danger:#e24545; --ring:rgba(42,102,255,.22);
+
+    /* section header colors (light) */
+    --sec1-bg: color-mix(in oklab, #2a66ff 12%, var(--surface));
+    --sec2-bg: color-mix(in oklab, #19a06a 12%, var(--surface));
+    --sec3-bg: color-mix(in oklab, #ff8b2a 14%, var(--surface));
+    --sec-fg: var(--title);
   }
   [data-theme="dark"]{
     --bg:#0a0e13; --surface:#0f1520; --elev:#121a26;
     --line:#1f2a3a; --muted:#8ea4b8; --text:#eef4fb; --title:#ffffff;
     --accent:#62a8ff; --accent-2:#19c37d; --danger:#ff6b6b; --ring:rgba(98,168,255,.35);
+
+    /* section header colors (dark) */
+    --sec1-bg: color-mix(in oklab, #62a8ff 18%, #0f1520);
+    --sec2-bg: color-mix(in oklab, #19c37d 18%, #0f1520);
+    --sec3-bg: color-mix(in oklab, #ffb066 20%, #0f1520);
+    --sec-fg: #fff;
   }
 
   /* ===== BASE ===== */
@@ -61,7 +73,10 @@
   th,td{border-bottom:1px solid var(--line);padding:12px 12px;vertical-align:middle}
   th{background:color-mix(in oklab, var(--surface) 90%, var(--bg));font-weight:700}
   tr:last-child td,tr:last-child th{border-bottom:0}
-  .sec-title{background:color-mix(in oklab, var(--surface) 85%, var(--bg));font-weight:800;text-align:left}
+  .sec-title{font-weight:800;text-align:left;color:var(--sec-fg)}
+  .sec1{background:var(--sec1-bg)!important}
+  .sec2{background:var(--sec2-bg)!important}
+  .sec3{background:var(--sec3-bg)!important}
   input[type="number"]{text-align:right}
   .mono{font-variant-numeric:tabular-nums}
   .right{text-align:right}
@@ -103,20 +118,28 @@
     <div class="section-wrap">
       <div class="table-wrap">
         <table>
-          <tr><th class="sec-title" colspan="8">1. 인적사항</th></tr>
+          <tr><th class="sec-title sec1" colspan="8">1. 인적사항</th></tr>
+          <!-- (2) 입사/퇴사 → 아래 행에 근속/총근로일수 -->
           <tr>
             <th style="width:14%">입사연월일</th>
             <td><input id="joinDate" type="text" placeholder="yyyy-mm-dd" data-next="leaveDate" /></td>
             <th style="width:14%">퇴사연월일</th>
             <td><input id="leaveDate" type="text" placeholder="yyyy-mm-dd" data-next="p1s" /></td>
-            <th style="width:14%">근속 연수</th>
-            <td>
+            <th style="width:14%"></th>
+            <td></td>
+            <th style="width:14%"></th>
+            <td></td>
+          </tr>
+          <tr>
+            <th>근속 연수</th>
+            <td colspan="3">
               <span class="mono" id="svcY">0</span>년
               <span class="mono" id="svcM">0</span>개월
               <span class="mono" id="svcD">0</span>일
             </td>
-            <th style="width:14%">총 근로일수</th>
+            <th>총 근로일수</th>
             <td class="right mono" id="svcDays">0</td>
+            <td colspan="2"></td>
           </tr>
         </table>
       </div>
@@ -126,7 +149,7 @@
     <div class="section-wrap">
       <div class="table-wrap">
         <table>
-          <tr><th class="sec-title" colspan="8">2. 평균임금의 계산</th></tr>
+          <tr><th class="sec-title sec2" colspan="8">2. 평균임금의 계산</th></tr>
           <tr><td class="subtle" colspan="8">※ 평균임금 = 최근 3개월 총임금 ÷ (최근 3개월 총일수 − 제외일수). 3개월이 4개월 구간으로 나뉠 수 있음.</td></tr>
 
           <tr><th colspan="8">2-1) 최근 3개월 기간(최대 4구간)</th></tr>
@@ -193,8 +216,12 @@
             <td colspan="2"><input id="ann3m" type="number" value="0" /></td>
             <th>상여금 3개월분</th>
             <td colspan="2"><input id="bon3m" type="number" value="0" /></td>
+            <td colspan="2"></td>
+          </tr>
+          <!-- (3) 총 임금(가산 후) 분리 -->
+          <tr>
             <th>총 임금(가산 후)</th>
-            <td class="right mono" id="allSum">0</td>
+            <td class="right mono" id="allSum" colspan="7">0</td>
           </tr>
         </table>
       </div>
@@ -211,16 +238,22 @@
     <div class="section-wrap">
       <div class="table-wrap">
         <table>
-          <tr><th class="sec-title" colspan="8">3. 퇴직금</th></tr>
+          <tr><th class="sec-title sec3" colspan="8">3. 퇴직금</th></tr>
           <tr>
             <th>평균임금(1일)</th>
             <td class="right mono" id="avgDaily2">0</td>
             <th>퇴직금(법정)</th>
             <td class="right mono" id="sevPay">0</td>
+            <!-- (4) 안내 문구 추가 -->
+            <td class="subtle" colspan="4">※ 지급이력이 있는 경우에만 기입</td>
+          </tr>
+          <!-- (4) 보험/중간정산 행 분리 -->
+          <tr>
             <th>퇴직보험금</th>
             <td class="right"><input id="insPay" type="number" value="0" /></td>
             <th>중간정산/기지급</th>
             <td class="right"><input id="paidPay" type="number" value="0" /></td>
+            <td colspan="4"></td>
           </tr>
           <tr>
             <th>차인지급액</th>
@@ -235,7 +268,7 @@
       <span class="subtle">날짜는 8자리(예: 20241010) 입력만으로 자동 포맷·다음 칸 이동합니다.</span>
     </div>
 
-    <!-- 요청하신 최종 문구 -->
+    <!-- 최종 안내 문구 -->
     <div class="note" id="legalNote">
       * 퇴사연월일은 마지막 근무일 다음날을 입력<br>
       * 퇴직금(법정) = 평균임금 × 30일 × (재직일수÷365). 근속 1년 미만은 퇴직금 미발생<br>

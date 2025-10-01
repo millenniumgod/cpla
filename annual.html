@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>연차수당 계산기</title>
+  <style>
+    :root { --bg:#0b0f14; --card:#121821; --muted:#8aa0b2; --text:#eaf2f9; }
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,Malgun Gothic,sans-serif}
+    header,main,footer{max-width:1000px;margin:0 auto;padding:0 16px}
+    header{margin-top:24px}
+    .title{font-size:26px;font-weight:800}
+    .bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:8px 0 16px}
+    select{padding:10px 12px;border-radius:10px;border:1px solid #2b3950;background:#0f1620;color:var(--text)}
+    .card{background:var(--card);border:1px solid #1c2531;border-radius:16px;padding:16px;margin:10px 0}
+    label{display:block;margin:10px 0 6px;font-weight:600}
+    input{width:100%;padding:10px 12px;border-radius:10px;border:1px solid #293443;background:#0f1620;color:var(--text)}
+    .btn{margin-top:14px;padding:12px 14px;border-radius:12px;border:1px solid #2b3950;background:#0f1620;color:var(--text);font-weight:700;cursor:pointer}
+    .result{margin-top:14px;padding:12px;border-radius:12px;background:#0f1c12;border:1px solid #1b3a28}
+    .mono{font-variant-numeric:tabular-nums}
+    .muted{color:var(--muted);font-size:12px;line-height:1.6}
+    footer{color:var(--muted);font-size:12px;margin:24px 0 40px}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="title">연차수당 계산기</div>
+    <div class="bar">
+      <label for="calcSelect">이동:</label>
+      <select id="calcSelect">
+        <option value="">— 선택 —</option>
+        <option value="severance.html">퇴직금 계산기</option>
+        <option value="annual.html" selected>연차수당 계산기</option>
+        <option value="hours52.html">주52시간 계산기</option>
+        <option value="./">메인으로</option>
+      </select>
+    </div>
+  </header>
+
+  <main>
+    <section class="card">
+      <label for="annOccur">연차 발생일수</label>
+      <input id="annOccur" type="number" inputmode="numeric" value="15" />
+      <label for="annUsed">사용한 연차</label>
+      <input id="annUsed" type="number" inputmode="numeric" value="0" />
+      <label for="dailyWage">일급(원)</label>
+      <input id="dailyWage" type="number" inputmode="numeric" value="100000" />
+
+      <button class="btn" id="btnAnn">연차수당 계산</button>
+      <div class="result" id="annOut" hidden>
+        <div><strong>미사용 연차일수:</strong> <span class="mono" id="annRemain">-</span> 일</div>
+        <hr style="border:0;border-top:1px solid #203044;margin:12px 0">
+        <div><strong>연차수당(간이):</strong> <span class="mono" id="annPay">-</span> 원</div>
+      </div>
+
+      <p class="muted">※ 출근율 요건, 1년 미만 월차 등은 별도 규정이 적용될 수 있습니다.</p>
+    </section>
+  </main>
+
+  <footer>© <span id="y"></span> 노무 계산기</footer>
+
+  <script>
+    const fmt = n => n.toLocaleString('ko-KR');
+    document.getElementById('calcSelect').addEventListener('change', e=>{ if(e.target.value) location.href=e.target.value; });
+    document.getElementById('btnAnn').addEventListener('click', ()=>{
+      const occur = Number(document.getElementById('annOccur').value||0);
+      const used = Number(document.getElementById('annUsed').value||0);
+      const daily = Number(document.getElementById('dailyWage').value||0);
+      const remain = Math.max(occur - used, 0);
+      const pay = remain * daily;
+      document.getElementById('annRemain').textContent = fmt(remain);
+      document.getElementById('annPay').textContent = fmt(Math.floor(pay));
+      document.getElementById('annOut').hidden = false;
+    });
+    document.getElementById('y').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>

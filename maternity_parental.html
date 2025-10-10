@@ -1,1 +1,302 @@
+<!doctype html>
+<html lang="ko" data-theme="light">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>출산휴가·육아휴직 급여 계산기</title>
+<meta name="description" content="월 통상임금과 기간을 입력하면 출산휴가(출산전후휴가)·육아휴직 급여를 자동 계산합니다." />
+<style>
+  :root{
+    --bg:#f6f8fb; --surface:#fff; --elev:#fff; --line:#e5eaf0;
+    --text:#0d1b2a; --muted:#516173; --title:#0a0f18;
+    --accent:#2a66ff; --ring:rgba(42,102,255,.22);
+    --sec-bg:#0a2a60; --sec-fg:#fff; --yellow:#fff9e6; --chip:#f3f6ff;
+  }
+  [data-theme="dark"]{
+    --bg:#0a0e13; --surface:#0f1520; --elev:#121a26; --line:#1f2a3a;
+    --text:#eef4fb; --muted:#8ea4b8; --title:#fff;
+    --accent:#62a8ff; --ring:rgba(98,168,255,.35);
+    --sec-bg:#0a2a60; --sec-fg:#fff; --yellow:#2a2412; --chip:#10192a;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
+    font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,Malgun Gothic,Helvetica,Arial,sans-serif}
+  a{color:var(--accent);text-decoration:none}
+  /* App bar */
+  .appbar{position:sticky;top:0;z-index:10;display:flex;justify-content:space-between;align-items:center;gap:12px;
+    padding:12px 16px;background:var(--bg);border-bottom:1px solid var(--line);backdrop-filter:saturate(140%) blur(6px)}
+  .brand{font-weight:800;color:var(--title)}
+  .bar-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  select,.btn,input, .select-like{
+    background:var(--surface);color:var(--text);border:1px solid var(--line);border-radius:12px;
+    padding:10px 12px;outline:none;transition:.15s;box-shadow:0 0 0 0 var(--ring)
+  }
+  select:hover,.btn:hover,input:hover{border-color:color-mix(in oklab, var(--accent) 30%, var(--line))}
+  select:focus,input:focus{box-shadow:0 0 0 6px var(--ring);border-color:var(--accent)}
+  .btn{cursor:pointer;font-weight:700}
+  .btn.primary{border-color:var(--accent);background:color-mix(in oklab, var(--accent) 12%, var(--surface))}
+  /* Layout */
+  .container{max-width:1100px;margin:28px auto 80px;padding:0 16px}
+  .sheet{background:var(--elev);border:1px solid var(--line);border-radius:18px;overflow:hidden;box-shadow:0 8px 30px rgba(0,0,0,.08)}
+  .sheet h1{margin:0;padding:18px;background:color-mix(in oklab, var(--surface) 92%, var(--bg));
+    text-align:center;font-size:20px;font-weight:800;color:var(--title);border-bottom:1px solid var(--line)}
+  .controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line);background:var(--surface)}
+  .controls .group{display:flex;gap:8px;align-items:center}
+  .subtle{color:var(--muted);font-size:12px}
+  .tables{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:16px}
+  @media (max-width: 980px){ .tables{grid-template-columns:1fr} }
+  .table-wrap{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--surface)}
+  table{width:100%;border-collapse:separate;border-spacing:0}
+  th,td{border-bottom:1px solid var(--line);padding:10px 10px;vertical-align:middle}
+  th{background:color-mix(in oklab, var(--surface) 90%, var(--bg));font-weight:700}
+  tr:last-child td,tr:last-child th{border-bottom:0}
+  .sec-title{background:var(--sec-bg)!important;color:var(--sec-fg)!important;text-align:left;font-weight:800}
+  .yellow{background:var(--yellow)}
+  .right{text-align:right}
+  .mono{font-variant-numeric:tabular-nums}
+  .kpi{display:flex;gap:16px;flex-wrap:wrap;padding:16px}
+  .chip{background:var(--chip);border:1px solid var(--line);border-radius:12px;padding:12px;min-width:220px}
+  .chip strong{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
+  .chip .val{font-size:18px;font-weight:800}
+  .note{padding:14px 16px;border-top:1px solid var(--line);color:var(--muted);font-size:13px;line-height:1.6}
+</style>
+</head>
+<body>
+  <!-- Top bar -->
+  <div class="appbar">
+    <div class="brand">출산휴가·육아휴직 급여 계산기</div>
+    <div class="bar-actions">
+      <label for="calcSelect" class="subtle">이동</label>
+      <select id="calcSelect" title="계산기 이동">
+        <option value="">— 선택 —</option>
+        <option value="./index.html">홈</option>
+        <option value="./severance.html">퇴직금 계산기</option>
+        <option value="./annual.html">연차휴가 계산기</option>
+        <option value="./hours52.html">주휴시간 계산기</option>
+        <option value="./maternity_parental.html" selected>출산·육아휴직 계산기</option>
+      </select>
+      <button id="themeBtn" class="btn" type="button">🌙 다크 모드</button>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="sheet">
+      <h1>출산휴가(출산전후휴가) · 육아휴직 급여 계산기</h1>
+
+      <!-- 입력 영역 -->
+      <div class="controls">
+        <div class="group">
+          <label>월 통상임금(원)
+            <input id="monthlyWage" type="number" placeholder="예: 3,500,000" />
+          </label>
+        </div>
+        <div class="group">
+          <label>출산휴가 유형
+            <select id="matType" class="select-like" title="출산휴가 유형">
+              <option value="single">단태아(90일)</option>
+              <option value="multi">다태아(120일)</option>
+              <option value="preterm">미숙아·조산(100일, ’25.2.23~)</option>
+            </select>
+          </label>
+        </div>
+        <div class="group">
+          <label>육아휴직 개월수
+            <select id="parentMonths" title="육아휴직 개월수">
+              <!-- 1~12 -->
+              <script>
+                document.write([...Array(12)].map((_,i)=>`<option value="${i+1}">${i+1}개월</option>`).join(''));
+              </script>
+            </select>
+          </label>
+        </div>
+        <button id="btnCalc" class="btn primary">계산</button>
+        <span class="subtle">※ 계산 가정: 일일 통상임금 = 월 통상임금 ÷ 30</span>
+      </div>
+
+      <!-- 요약 KPI -->
+      <div class="kpi">
+        <div class="chip"><strong>출산휴가 총액</strong><div class="val mono" id="kpiMat">0</div></div>
+        <div class="chip"><strong>육아휴직 총액</strong><div class="val mono" id="kpiPar">0</div></div>
+        <div class="chip"><strong>합계</strong><div class="val mono" id="kpiTotal">0</div></div>
+      </div>
+
+      <div class="tables">
+        <!-- 출산휴가 -->
+        <div class="table-wrap">
+          <table>
+            <tr><th class="sec-title" colspan="4">① 출산휴가(출산전후휴가) 급여</th></tr>
+            <tr>
+              <th style="width:28%">구간</th>
+              <th class="yellow right">일수</th>
+              <th class="yellow right">일 단가</th>
+              <th class="right">금액</th>
+            </tr>
+            <tbody id="matBody"></tbody>
+            <tr>
+              <th>합계</th>
+              <td class="yellow right mono" id="matDays">0</td>
+              <td class="yellow"></td>
+              <td class="right mono" id="matSum">0</td>
+            </tr>
+          </table>
+          <div class="note">
+            * 최초 60일(다태아 75일)은 사업주 100% 지급, 잔여분은 고용보험 구간(30일당 210만원 상한=일 7만원) 적용하여 추정합니다. 실제 지급주체·요건은 사업장 규모 등 별도 규정이 적용됩니다. :contentReference[oaicite:2]{index=2}<br>
+            * 미숙아·조산의 경우 ’25.2.23 이후 **100일** 적용. :contentReference[oaicite:3]{index=3}
+          </div>
+        </div>
+
+        <!-- 육아휴직 -->
+        <div class="table-wrap">
+          <table>
+            <tr><th class="sec-title" colspan="5">② 육아휴직 급여(월별)</th></tr>
+            <tr>
+              <th style="width:18%">월차</th>
+              <th class="yellow right">적용율</th>
+              <th class="yellow right">상한/하한</th>
+              <th class="yellow right">계산액</th>
+              <th class="right">지급액(상·하한 반영)</th>
+            </tr>
+            <tbody id="parBody"></tbody>
+            <tr>
+              <th>합계</th>
+              <td class="yellow"></td>
+              <td class="yellow"></td>
+              <td class="yellow right mono" id="parCalcSum">0</td>
+              <td class="right mono" id="parPaySum">0</td>
+            </tr>
+          </table>
+          <div class="note">
+            * ’25.1.1~: 1~3개월 **100%(상한 250만)**, 4~6개월 **100%(상한 200만)**, 7~12개월 **80%(상한 160만)**, **하한 70만** 적용. 사후 25% 유보 폐지(월별 전액 지급). :contentReference[oaicite:4]{index=4}
+          </div>
+        </div>
+      </div>
+
+      <div class="note">
+        ※ 본 계산기는 편의상 간이 산식을 적용합니다(예: 일할 계산, 통상임금 정의, 상여·수당 포함여부 등은 사업장 규정/법령 해석에 따라 달라질 수 있음).<br>
+        ※ 실제 신청·지급은 워크넷·고용센터 지침을 따릅니다(온라인 신청 경로 참조). :contentReference[oaicite:5]{index=5} <br>
+        ※ 법령·지침은 수시 개정되므로 최신 공고를 확인하세요. :contentReference[oaicite:6]{index=6}
+      </div>
+    </div>
+  </div>
+
+<script>
+/* ===== Theme + Nav ===== */
+(function(){
+  const saved = localStorage.getItem('theme'); if(saved) document.documentElement.setAttribute('data-theme', saved);
+  updateThemeBtn();
+})();
+function updateThemeBtn(){
+  const dark = document.documentElement.getAttribute('data-theme')==='dark';
+  document.getElementById('themeBtn').textContent = dark ? '☀️ 라이트 모드' : '🌙 다크 모드';
+}
+document.getElementById('themeBtn').addEventListener('click', ()=>{
+  const cur = document.documentElement.getAttribute('data-theme') || 'light';
+  const next = cur==='light' ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('theme', next);
+  updateThemeBtn();
+});
+document.getElementById('calcSelect').addEventListener('change', e=>{
+  if(e.target.value) location.href = e.target.value;
+});
+
+/* ===== Utils ===== */
+const fmt = n => (Number.isFinite(n)? Math.round(n).toLocaleString('ko-KR') : '0');
+const money = n => (Number.isFinite(n)? Math.round(n).toLocaleString('ko-KR') : '0');
+function valNum(id){ return Number((document.getElementById(id).value||'0').toString().replace(/,/g,''))||0; }
+
+/* ===== Core calc ===== */
+function calcMaternity(monthly, type){
+  const daily = monthly / 30;
+  let totalDays = 90;
+  let employerDays = 60;
+  if(type === 'multi'){ totalDays = 120; employerDays = 75; }
+  if(type === 'preterm'){ totalDays = 100; employerDays = 60; } // 지침상 추가 10일은 정부 부담(표시는 총 100일로 반영)
+
+  const eiDays = Math.max(0, totalDays - employerDays);
+
+  const employerPay = daily * employerDays;         // 100%
+  const eiDailyCap = 2100000 / 30;                  // 30일당 210만원 상한 → 일 7만원
+  const eiPay = Math.min(daily, eiDailyCap) * eiDays;
+
+  // 표 렌더
+  const tbody = document.getElementById('matBody');
+  tbody.innerHTML = '';
+  tbody.appendChild(row(['사업주 부담(100%)', employerDays, daily, employerPay]));
+  tbody.appendChild(row(['고용보험 구간(상한 적용)', eiDays, Math.min(daily, eiDailyCap), eiPay]));
+
+  document.getElementById('matDays').textContent = fmt(totalDays);
+  document.getElementById('matSum').textContent = money(employerPay + eiPay);
+
+  return employerPay + eiPay;
+
+  function cell(t, cls='', isMoney=false){
+    const td=document.createElement('td'); td.className = cls;
+    td.textContent = isMoney? money(t) : (typeof t==='number'? fmt(t) : t);
+    return td;
+  }
+  function row([label, days, per, amt]){
+    const tr=document.createElement('tr');
+    tr.appendChild(cell(label));
+    tr.appendChild(cell(days,'yellow right mono'));
+    tr.appendChild(cell(per,'yellow right mono',false));
+    tr.appendChild(cell(amt,'right mono',true));
+    return tr;
+  }
+}
+
+function calcParental(monthly, months){
+  // 단계별 규칙(’25.1.1~)
+  // 1~3M: 100%, cap 2.5m
+  // 4~6M: 100%, cap 2.0m
+  // 7~12M: 80%, cap 1.6m
+  // min 0.7m
+  const rules = [];
+  for(let m=1; m<=months; m++){
+    let rate=1, cap=2500000;
+    if(m>=4 && m<=6){ rate=1; cap=2000000; }
+    else if(m>=7){ rate=0.8; cap=1600000; }
+    const calc = monthly * rate;
+    const paid = Math.max(700000, Math.min(calc, cap));
+    rules.push({m, rate, cap, calc, paid});
+  }
+
+  // 표 렌더
+  const tbody = document.getElementById('parBody');
+  tbody.innerHTML = '';
+  let calcSum=0, paySum=0;
+  rules.forEach(r=>{
+    const tr=document.createElement('tr');
+    tr.appendChild(td(`${r.m}개월차`));
+    tr.appendChild(td(`${Math.round(r.rate*100)}%`,'yellow right mono'));
+    tr.appendChild(td(`${money(r.cap)} / ${money(700000)}`,'yellow right mono'));
+    tr.appendChild(td(money(r.calc),'yellow right mono'));
+    tr.appendChild(td(money(r.paid),'right mono'));
+    tbody.appendChild(tr);
+    calcSum += r.calc; paySum += r.paid;
+  });
+  document.getElementById('parCalcSum').textContent = money(calcSum);
+  document.getElementById('parPaySum').textContent = money(paySum);
+  return paySum;
+
+  function td(t, cls=''){ const el=document.createElement('td'); el.className=cls; el.textContent=t; return el; }
+}
+
+/* ===== Wire ===== */
+document.getElementById('btnCalc').addEventListener('click', ()=>{
+  const monthly = valNum('monthlyWage');
+  const type = document.getElementById('matType').value;
+  const months = Number(document.getElementById('parentMonths').value)||0;
+  if(monthly<=0){ alert('월 통상임금을 입력하세요.'); return; }
+
+  const mat = calcMaternity(monthly, type);
+  const par = months>0 ? calcParental(monthly, months) : 0;
+
+  document.getElementById('kpiMat').textContent = money(mat);
+  document.getElementById('kpiPar').textContent = money(par);
+  document.getElementById('kpiTotal').textContent = money(mat + par);
+});
+</script>
+</body>
+</html>
 

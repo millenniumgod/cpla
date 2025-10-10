@@ -47,6 +47,7 @@
   .yellow{background:var(--yellow)}
   .num-input{width:100%; text-align:right; padding:6px 8px; border:1px solid var(--line); border-radius:8px; background:var(--surface); color:var(--text);}
   .num-input:focus{outline:none; border-color:var(--accent); box-shadow:0 0 0 4px var(--ring)}
+  .note{padding:16px; font-size:13px; color:var(--muted); border-top:1px solid var(--line); line-height:1.6;}
 </style>
 </head>
 <body>
@@ -111,6 +112,12 @@
           </table>
         </div>
       </div>
+
+      <!-- ✅ 안내 문구 추가 -->
+      <div class="note">
+        * 2017년 5월 29일 이전 입사자의 경우에도 자동 계산됩니다.<br>
+        * 상기 계산 방식은 업무의 편의를 돕기 위한 것으로 법적 효력이 없으며 구체적인 내용은 공인노무사에 문의 바랍니다.
+      </div>
     </div>
   </div>
 
@@ -163,19 +170,17 @@ function monthlyAccruals(join, leave){
   const end = (leave && leave<firstAnniv) ? leave : firstAnniv;
   const arr=[]; let cur=addMonths(join,1);
   while(cur<=end){ arr.push(new Date(cur)); cur=addMonths(cur,1); }
-  // 정확히 만 1년 당일은 월차 X
   return arr.filter(d => d < firstAnniv && (!leave || d<=leave));
 }
 // 정기연차: n=1→15(2년차), n=2→15(3년차), n=3→16(4~5년차)… 상한 25
 function regularDaysByYearN(n){ return Math.min(25, 15 + Math.floor((n-1)/2)); }
 
-/* ===== Rendering utils ===== */
 function clearTbody(tb){ while(tb.firstChild) tb.removeChild(tb.firstChild); }
 function tr(cells){ const r=document.createElement('tr'); cells.forEach(c=>r.appendChild(c)); return r; }
 function th(t){ const e=document.createElement('th'); e.textContent=t; return e; }
 function td(t,cls=''){ const e=document.createElement('td'); e.textContent=t; if(cls) e.className=cls; return e; }
 
-/* 사용/보상 셀 (자동 특례 반영 + 콘솔 로그) */
+/* 사용/보상 셀 (자동 특례 반영) */
 function usedCompCells(baseDays, typeTag, isLegacy){
   const usedTd=document.createElement('td');
   const inp=document.createElement('input');
@@ -183,23 +188,20 @@ function usedCompCells(baseDays, typeTag, isLegacy){
   usedTd.appendChild(inp);
 
   const compTd=document.createElement('td'); compTd.className='right mono';
-
   function update(){
     let comp=0;
+    // 특례: 2017-05-29 이전 입사자는 지정 구간 보상일수 0 처리
     if(isLegacy && (typeTag==='fiscal-y1' || typeTag==='fiscal-y2carry' || typeTag==='anniv-under1')){
-      comp=0; // 특례: 보상 0
-      console.log(`[특례] ${typeTag}: base=${baseDays} → 보상=0`);
+      comp = 0;
     }else{
       const used=parseFloat(inp.value)||0;
-      comp=Math.max(0, baseDays - used);
-      console.log(`[일반] ${typeTag}: base=${baseDays}, used=${used} → 보상=${comp}`);
+      comp = Math.max(0, baseDays - used);
     }
     compTd.textContent=(Math.round(comp*10)/10).toString();
     recalcSums();
   }
   inp.addEventListener('input', update);
-  // 초기
-  update();
+  update(); // 초기값 반영
   return [usedTd, compTd];
 }
 
@@ -208,10 +210,10 @@ function recalcSums(){
   [['fiscalBody','fiscalSum','fiscalUsedSum','fiscalCompSum'],
    ['annivBody','annivSum','annivUsedSum','annivCompSum']].forEach(([tbodyId,sumId,usedId,compId])=>{
     const tbody=document.getElementById(tbodyId);
-    const base = [...tbody.querySelectorAll('td.yellow.right')].reduce((a,e)=>a+(parseFloat(e.textContent)||0),0);
-    const used = [...tbody.querySelectorAll('input.num-input')].reduce((a,e)=>a+(parseFloat(e.value)||0),0);
-    const comp = [...tbody.querySelectorAll('tr')].reduce((a,row)=>{
-      const last=row.querySelector('td:last-child'); return a + (last ? (parseFloat(last.textContent)||0) : 0);
+    const base=[...tbody.querySelectorAll('td.yellow.right')].reduce((a,e)=>a+(parseFloat(e.textContent)||0),0);
+    const used=[...tbody.querySelectorAll('input.num-input')].reduce((a,e)=>a+(parseFloat(e.value)||0),0);
+    const comp=[...tbody.querySelectorAll('tr')].reduce((a,row)=>{
+      const last=row.querySelector('td:last-child'); return a+(last?(parseFloat(last.textContent)||0):0);
     },0);
     document.getElementById(sumId).textContent=(Math.round(base*10)/10).toString();
     document.getElementById(usedId).textContent=(Math.round(used*10)/10).toString();
@@ -226,8 +228,8 @@ function calc(){
   if(!jStr) return;
   const join=dt(jStr), leave=lStr?dt(lStr):null;
 
-  const isLegacy = join < new Date('2017-05-29'); // 자동 특례
-  console.log(`입사일=${jStr}, 특례적용=${isLegacy}`);
+  // 자동 특례 판정
+  const isLegacy = join < new Date('2017-05-29');
 
   /* ---- 입사일 기준 ---- */
   const aBody=document.getElementById('annivBody'); clearTbody(aBody);
@@ -241,7 +243,6 @@ function calc(){
     const [u,c]=usedCompCells(base,'anniv-under1',isLegacy);
     aBody.appendChild(tr([th('1년 미만'), td(label,'yellow'), td(base.toFixed(1),'yellow right mono'), u, c]));
     annivBaseSum += base;
-    console.log(`[입사일기준] 1년 미만: base=${base}`);
   }
 
   // 만1년 이후 정기연차
@@ -251,7 +252,6 @@ function calc(){
     const [u,c]=usedCompCells(base,'anniv-regular',isLegacy);
     aBody.appendChild(tr([th(`${n}년근속`), td(fmtDate(genDate),'yellow'), td(base.toFixed(1),'yellow right mono'), u, c]));
     annivBaseSum += base;
-    console.log(`[입사일기준] ${n}년근속: date=${fmtDate(genDate)}, base=${base}`);
     n++; genDate=addYears(genDate,1); if(n>50) break;
   }
   document.getElementById('annivSum').textContent=(Math.round(annivBaseSum*10)/10).toString();
@@ -272,50 +272,46 @@ function calc(){
     const [u,c]=usedCompCells(base,'fiscal-y1',isLegacy);
     fBody.appendChild(tr([th('1년차'), td(monthLabel,'yellow'), td(base.toFixed(1),'yellow right mono'), u, c]));
     fiscalBaseSum += base;
-    console.log(`[회계] 1년차 월차: base=${base}`);
   }
-  // 2년차 @(carry)
+  // 2년차 @ (carry)
   {
     const base=monthsCarry.length*1.0;
     const [u,c]=usedCompCells(base,'fiscal-y2carry',isLegacy);
     fBody.appendChild(tr([th('2년차 @'), td(monthLabel,'yellow'), td(base.toFixed(1),'yellow right mono'), u, c]));
     fiscalBaseSum += base;
-    console.log(`[회계] 2년차@ carry: base=${base}`);
   }
-  // 2년차(비례연차) : 전년도 12/31까지 근속일수/365*15, 소수점 둘째자리 올림(= 1자리 반올림 상향)
+  // 2년차(비례연차)
   {
     const endPrevYear=new Date(join.getFullYear(),11,31); // 입사연도 12/31
     let prorate=0;
     if(endPrevYear>=join){
       const svcPrev=daysInclusive(join, endPrevYear);
       const raw=(svcPrev/365)*15;
-      prorate = Math.ceil(raw*10)/10; // 둘째자리 올림 → 1자리 표시
+      prorate=Math.ceil(raw*10)/10; // 둘째자리 올림 → 1자리 표시
     }
     const base=+prorate.toFixed(1);
     const [u,c]=usedCompCells(base,'fiscal-y2prorate',isLegacy);
     fBody.appendChild(tr([th('2년차(비례연차)'), td(`${firstAnniv.getFullYear()}-01-01`,'yellow'), td(base.toFixed(1),'yellow right mono'), u, c]));
     fiscalBaseSum += base;
-    console.log(`[회계] 2년차 비례연차: base=${base} (firstAnniv=${fmtDate(firstAnniv)})`);
   }
-  // 3년차부터 온전히 발생: 해마다 1/1 발생, 정기연차 테이블 사용
+  // 3년차부터 온전히 발생(해마다 1/1)
   {
-    let fyYear = firstAnniv.getFullYear() + 1; // 3년차가 되는 해
-    let fyN = 2;                                // 정기연차 N: 1=2년차(이미 위에서 처리), 2=3년차, 3=4년차 …
-    let fyDate = addYears(firstAnniv, 1);       // 만2년 도달일(3년차 시작)
+    let fyYear = firstAnniv.getFullYear()+1; // 3년차 해
+    let fyN = 2;                             // 정기연차 N: 1=2년차(위 처리), 2=3년차 …
+    let fyDate = addYears(firstAnniv,1);     // 만2년 도달일(3년차 시작 기준)
     while(!leave || fyDate <= leave){
       const days = regularDaysByYearN(fyN);
       const base = +days.toFixed(1);
       const [u,c]=usedCompCells(base,'fiscal-regular',isLegacy);
       fBody.appendChild(tr([th(`${fyN+1}년차`), td(`${fyYear}-01-01`,'yellow'), td(base.toFixed(1),'yellow right mono'), u, c]));
       fiscalBaseSum += base;
-      console.log(`[회계] ${fyN+1}년차 정기: year=${fyYear}, base=${base}`);
-      fyN++; fyYear++; fyDate = addYears(fyDate, 1);
-      if(fyN>50) break;
+      fyN++; fyYear++; fyDate = addYears(fyDate,1);
+      if(fyN>50) break; // 안전장치
     }
   }
-
   document.getElementById('fiscalSum').textContent=(Math.round(fiscalBaseSum*10)/10).toString();
-  // 최종 합계 갱신
+
+  // 합계 갱신
   recalcSums();
 }
 

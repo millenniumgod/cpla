@@ -1,71 +1,191 @@
 <!doctype html>
-<html lang="ko">
+<html lang="ko" data-theme="light">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>노무 계산기 | 메인</title>
-  <meta name="description" content="퇴직금, 연차수당, 주52시간 계산기를 모아둔 메인 페이지" />
-  <style>
-    :root { --bg:#0b0f14; --card:#121821; --muted:#8aa0b2; --text:#eaf2f9; --accent:#4da3ff; }
-    *{box-sizing:border-box}
-    html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,Malgun Gothic,sans-serif}
-    header,main,footer{max-width:1000px;margin:0 auto;padding:0 16px}
-    header{margin-top:24px}
-    .title{font-size:28px;font-weight:800}
-    .sub{color:var(--muted);margin:6px 0 14px}
-    .bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:12px 0 18px}
-    select{padding:10px 12px;border-radius:10px;border:1px solid #2b3950;background:#0f1620;color:var(--text)}
-    .grid{display:grid;gap:16px;margin:10px 0 40px}
-    @media(min-width:820px){ .grid{grid-template-columns:repeat(3,1fr)} }
-    .card{background:var(--card);border:1px solid #1c2531;border-radius:16px;padding:16px;text-decoration:none;color:var(--text)}
-    .card h3{margin:0 0 8px}
-    .muted{color:var(--muted);font-size:13px}
-    a.btn{display:inline-block;margin-left:auto;padding:10px 12px;border:1px solid #2b3950;border-radius:10px;background:#0f1620;color:var(--text);text-decoration:none}
-    footer{color:var(--muted);font-size:12px;margin:24px 0 40px}
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>HR 계산기 메인</title>
+<meta name="description" content="퇴직금, 연차휴가, 주휴시간, 출산·육아휴직 등 HR 실무용 계산기 모음" />
+<style>
+  :root{
+    --bg:#f6f8fb; --surface:#fff; --line:#e5eaf0;
+    --text:#0d1b2a; --muted:#516173; --title:#0a0f18;
+    --accent:#2a66ff; --ring:rgba(42,102,255,.22);
+    --sec-bg:#0a2a60; --sec-fg:#fff;
+  }
+  [data-theme="dark"]{
+    --bg:#0a0e13; --surface:#0f1520; --line:#1f2a3a;
+    --text:#eef4fb; --muted:#8ea4b8; --title:#fff;
+    --accent:#62a8ff; --ring:rgba(98,168,255,.35);
+    --sec-bg:#0a2a60; --sec-fg:#fff;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
+    font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,Malgun Gothic,Helvetica,Arial,sans-serif}
+  a{text-decoration:none;color:inherit}
+
+  /* Appbar */
+  .appbar{position:sticky;top:0;z-index:10;display:flex;justify-content:space-between;align-items:center;
+    padding:12px 16px;background:var(--bg);border-bottom:1px solid var(--line);backdrop-filter:saturate(140%) blur(6px)}
+  .brand{font-weight:800;font-size:18px;color:var(--title)}
+  .btn{border:1px solid var(--accent);border-radius:12px;padding:8px 12px;background:color-mix(in oklab,var(--accent) 12%,var(--surface));
+    font-weight:700;cursor:pointer;color:var(--text)}
+
+  .container{max-width:1100px;margin:32px auto 80px;padding:0 16px}
+  h1{text-align:center;margin:16px 0 12px;font-size:22px;font-weight:800;color:var(--title)}
+  .sub{text-align:center;margin:0 0 28px;color:var(--muted);font-size:14px}
+
+  /* Grid */
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:24px}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:22px 18px;
+    text-align:left;box-shadow:0 8px 25px rgba(0,0,0,.05);transition:all .2s ease; display:flex; gap:12px; align-items:flex-start}
+  .card:hover{transform:translateY(-4px);border-color:var(--accent);box-shadow:0 12px 28px rgba(0,0,0,.08)}
+  .card .icon{font-size:22px; line-height:1; margin-top:2px}
+  .card h2{margin:0 0 6px;font-size:17px;font-weight:800;color:var(--title)}
+  .card p{margin:0;font-size:14px;color:var(--muted);line-height:1.5}
+  .pill{margin-top:10px;display:inline-block;font-size:12px;color:var(--sec-fg);background:var(--sec-bg);
+    padding:4px 8px;border-radius:999px}
+
+  .section-title{margin:36px 0 12px;font-weight:800;color:var(--title)}
+  .footer{margin-top:42px;text-align:center;font-size:13px;color:var(--muted);line-height:1.6}
+</style>
 </head>
 <body>
-  <header>
-    <div class="title">인사노무 계산기</div>
-    <div class="sub">아래 선택창에서 계산기를 고르거나 카드로 이동하세요.</div>
-    <div class="bar">
-      <label for="calcSelect">계산기 선택:</label>
-      <select id="calcSelect">
-        <option value="">-- 선택 --</option>
-        <option value="severance.html">퇴직금 계산기</option>
-        <option value="annual.html">연차수당 계산기</option>
-        <option value="hours52.html">주52시간 계산기</option>
-      </select>
-      <a class="btn" href="./privacy.html">개인정보 처리방침</a>
+  <div class="appbar">
+    <div class="brand">HR 계산기 메인</div>
+    <button id="themeBtn" class="btn" type="button">🌙 다크 모드</button>
+  </div>
+
+  <div class="container">
+    <h1>HR 실무 계산기 모음</h1>
+    <p class="sub">현업에서 바로 쓰는 툴만 담았습니다. 필요 계산기를 클릭하세요.</p>
+
+    <!-- ✅ 계산기 카드들이 이 영역에 JS로 자동 렌더링됩니다 -->
+    <div id="toolsGrid" class="grid"></div>
+
+    <!-- (선택) 향후 확장 섹션: 숨김/표시 가능 -->
+    <h3 id="moreTitle" class="section-title" style="display:none;">추가 예정 도구</h3>
+    <div id="moreGrid" class="grid"></div>
+
+    <div class="footer">
+      © 2025 노무법인 C&L ESG 센터<br>
+      모든 계산기는 법적 효력 없이 참고용이며, 구체적 적용은 공인노무사 자문을 통해 확인하세요.
     </div>
-  </header>
+  </div>
 
-  <main>
-    <div class="grid">
-      <a class="card" href="./severance.html">
-        <h3>퇴직금 계산기</h3>
-        <p class="muted">평균임금(최근 3개월) 기준 간이 계산</p>
-      </a>
-      <a class="card" href="./annual.html">
-        <h3>연차수당 계산기</h3>
-        <p class="muted">미사용 연차 × 일급(통상/평균 중 큰 값)</p>
-      </a>
-      <a class="card" href="./hours52.html">
-        <h3>주52시간 계산기</h3>
-        <p class="muted">요일별 근로시간 입력 → 합계·초과 여부</p>
-      </a>
-    </div>
-  </main>
+<script>
+/* ===== Theme toggle ===== */
+(function(){
+  const saved=localStorage.getItem('theme');
+  if(saved) document.documentElement.setAttribute('data-theme',saved);
+  updateThemeBtn();
+})();
+function updateThemeBtn(){
+  const dark=document.documentElement.getAttribute('data-theme')==='dark';
+  document.getElementById('themeBtn').textContent=dark?'☀️ 라이트 모드':'🌙 다크 모드';
+}
+document.getElementById('themeBtn').addEventListener('click',()=>{
+  const cur=document.documentElement.getAttribute('data-theme')||'light';
+  const next=cur==='light'?'dark':'light';
+  document.documentElement.setAttribute('data-theme',next);
+  localStorage.setItem('theme',next);
+  updateThemeBtn();
+});
 
-  <footer>
-    © <span id="y"></span> 노무 계산기. 계산 결과는 간이 참고용이며 구체 사안은 별도 검토가 필요합니다.
-  </footer>
+/* ===== 카드 데이터만 추가하면 자동 반영 =====
+ * visible: true/false로 표시 여부 제어
+ * group: 'main' | 'more' 로 섹션 분리
+ * icon: 간단한 이모지 아이콘(원하면 빈 문자열 가능)
+ */
+const TOOLS = [
+  {
+    title: '평균임금 및 퇴직금 계산기',
+    desc: '입사·퇴사일과 임금 내역을 입력하면 평균임금과 법정 퇴직금을 자동 산정합니다.',
+    href: './severance.html',
+    icon: '💼',
+    group: 'main',
+    visible: true,
+  },
+  {
+    title: '연차휴가 계산기',
+    desc: '입사일 기준·회계연도 기준으로 연차발생일수와 보상일수를 동시에 계산합니다.',
+    href: './annual.html',
+    icon: '📅',
+    group: 'main',
+    visible: true,
+  },
+  {
+    title: '주휴시간 계산기',
+    desc: '요일별 근로시간을 입력하면 주 소정근로시간과 주휴시간을 자동으로 계산합니다.',
+    href: './hours52.html',
+    icon: '⏱️',
+    group: 'main',
+    visible: true,
+  },
+  {
+    title: '출산휴가·육아휴직 급여 계산기',
+    desc: '통상임금 기준으로 출산전후휴가 및 육아휴직 급여를 추정합니다.',
+    href: './maternity_parental.html',
+    icon: '👶',
+    group: 'main',
+    visible: true,
+  },
 
-  <script>
-    document.getElementById('calcSelect').addEventListener('change', e=>{
-      if(e.target.value) location.href = e.target.value;
-    });
-    document.getElementById('y').textContent = new Date().getFullYear();
-  </script>
+  /* ===== 여기 아래로 향후 추가할 도구 예시 ===== */
+  // {
+  //   title: '통상임금 계산기',
+  //   desc: '통상임금 산정과 포함/제외 항목을 도와주는 도구입니다.',
+  //   href: './ordinary_wage.html',
+  //   icon: '🧮',
+  //   group: 'more',
+  //   visible: false
+  // },
+  // {
+  //   title: '휴업수당 계산기',
+  //   desc: '평균임금의 70% 기준 휴업수당을 간단히 계산합니다.',
+  //   href: './suspension_allowance.html',
+  //   icon: '🛠️',
+  //   group: 'more',
+  //   visible: false
+  // },
+];
+
+/* ===== 렌더러 ===== */
+function renderCards(){
+  const main = TOOLS.filter(t=>t.visible && t.group==='main');
+  const more = TOOLS.filter(t=>t.visible && t.group==='more');
+
+  const toolsGrid = document.getElementById('toolsGrid');
+  const moreGrid  = document.getElementById('moreGrid');
+  toolsGrid.innerHTML = '';
+  moreGrid.innerHTML  = '';
+
+  main.forEach(addCard(toolsGrid));
+  if(more.length){
+    document.getElementById('moreTitle').style.display='block';
+    more.forEach(addCard(moreGrid));
+  }else{
+    document.getElementById('moreTitle').style.display='none';
+  }
+}
+
+function addCard(container){
+  return (tool)=>{
+    const a = document.createElement('a');
+    a.href = tool.href;
+    a.className = 'card';
+    a.innerHTML = `
+      <div class="icon">${tool.icon||''}</div>
+      <div>
+        <h2>${tool.title}</h2>
+        <p>${tool.desc}</p>
+        <span class="pill">바로가기</span>
+      </div>
+    `;
+    container.appendChild(a);
+  };
+}
+
+renderCards();
+</script>
 </body>
 </html>

@@ -52,7 +52,7 @@
 </head>
 <body>
 
-<!-- 상단 바: 홈/다른 계산기 내비게이션 포함 -->
+<!-- 상단 바 -->
 <div class="appbar">
   <div class="brand">연차휴가 계산기</div>
   <div style="display:flex;gap:10px;align-items:center;">
@@ -133,12 +133,10 @@
 </div>
 
 <script>
-/* ===== 네비게이션 ===== */
 document.getElementById('navSelect').addEventListener('change', e=>{
   if(e.target.value) location.href = e.target.value;
 });
 
-/* ===== Theme toggle ===== */
 (function(){
   const saved = localStorage.getItem('theme');
   if(saved) document.documentElement.setAttribute('data-theme', saved);
@@ -156,77 +154,46 @@ document.getElementById('themeBtn').addEventListener('click',()=>{
   updateThemeBtn();
 });
 
-/* ===== Date helpers ===== */
-function toYmd(val){
-  const v=(val||'').replace(/\D/g,''); if(v.length!==8) return null;
-  const y=v.slice(0,4),m=v.slice(4,6),d=v.slice(6,8);
-  if(+m<1||+m>12||+d<1||+d>31)return null;
-  return `${y}-${m}-${d}`;
-}
-['joinDate','leaveDate'].forEach(id=>{
-  const el=document.getElementById(id);
-  el.addEventListener('input',()=>{const fm=toYmd(el.value);if(fm)el.value=fm;});
-});
+/* ===== Utilities ===== */
+function toYmd(val){const v=(val||'').replace(/\D/g,'');if(v.length!==8)return null;const y=v.slice(0,4),m=v.slice(4,6),d=v.slice(6,8);if(+m<1||+m>12||+d<1||+d>31)return null;return `${y}-${m}-${d}`;}
+['joinDate','leaveDate'].forEach(id=>{const el=document.getElementById(id);el.addEventListener('input',()=>{const fm=toYmd(el.value);if(fm)el.value=fm;});});
 const dt=s=>new Date(s);
 const fmtDate=d=>d.toISOString().slice(0,10);
 function addMonths(date,n){const d=new Date(date),day=d.getDate();d.setMonth(d.getMonth()+n);if(d.getDate()<day)d.setDate(0);return d;}
 function addYears(date,n){const d=new Date(date);d.setFullYear(d.getFullYear()+n);return d;}
-function daysInclusive(a,b){const A=(a instanceof Date)?a:new Date(a);const B=(b instanceof Date)?b:new Date(b);return Math.max(0,Math.floor((B-A)/86400000)+1);}
+function daysInclusive(a,b){const A=new Date(a),B=new Date(b);return Math.max(0,Math.floor((B-A)/86400000)+1);}
 
-/* ===== Logic ===== */
+/* ===== Core Logic ===== */
 function monthlyAccruals(join,leave){
   const first=addYears(join,1);
-  const end=(leave && leave<first)?leave:first;
-  const arr=[]; let cur=addMonths(join,1);
+  const end=(leave&&leave<first)?leave:first;
+  const arr=[];let cur=addMonths(join,1);
   while(cur<=end){arr.push(new Date(cur));cur=addMonths(cur,1);}
-  return arr.filter(d=>d<first && (!leave || d<=leave));
+  return arr.filter(d=>d<first && (!leave||d<=leave));
 }
 function regularDaysByYearN(n){return Math.min(25,15+Math.floor((n-1)/2));}
-/* 회계연도 표시기준: 3·4년차=15, 5년차부터 가산(5·6=16, 7·8=17 … 상한 25) */
-function fiscalDaysByDisplayYear(y){
-  if(y<=4) return 15;
-  const add=Math.floor((y-3)/2);
-  return Math.min(25,15+add);
-}
-
+function fiscalDaysByDisplayYear(y){if(y<=4)return 15;const add=Math.floor((y-3)/2);return Math.min(25,15+add);}
 function clearTbody(tb){while(tb.firstChild)tb.removeChild(tb.firstChild);}
 function tr(cs){const r=document.createElement('tr');cs.forEach(c=>r.appendChild(c));return r;}
 function th(t){const e=document.createElement('th');e.textContent=t;return e;}
 function td(t,c=''){const e=document.createElement('td');e.textContent=t;if(c)e.className=c;return e;}
 
-function usedCompCells(baseDays,typeTag,isLegacy){
+function usedCompCells(base,type,isLegacy){
   const usedTd=document.createElement('td');
   const inp=document.createElement('input');
-  inp.type='number'; inp.min='0'; inp.step='0.1'; inp.value='0'; inp.className='num-input mono';
+  inp.type='number';inp.min='0';inp.step='0.1';inp.value='0';inp.className='num-input mono';
   usedTd.appendChild(inp);
-
-  const compTd=document.createElement('td'); compTd.className='right mono';
-  function update(){
-    let comp=0;
-    // 특례: 2017-05-29 이전 입사자는 해당 구간 보상일수 0
-    if(isLegacy && (typeTag==='fiscal-y1' || typeTag==='fiscal-y2carry' || typeTag==='anniv-under1')){
-      comp = 0;
-    }else{
-      const used=parseFloat(inp.value)||0;
-      comp = Math.max(0, baseDays - used);
-    }
-    compTd.textContent=(Math.round(comp*10)/10).toString();
-    recalcSums();
-  }
-  inp.addEventListener('input', update);
-  update();
-  return [usedTd, compTd];
+  const compTd=document.createElement('td');compTd.className='right mono';
+  function update(){let comp=0;if(isLegacy&&(type==='fiscal-y1'||type==='fiscal-y2carry'||type==='anniv-under1'))comp=0;else{const used=parseFloat(inp.value)||0;comp=Math.max(0,base-used);}compTd.textContent=(Math.round(comp*10)/10).toString();recalcSums();}
+  inp.addEventListener('input',update);update();return[usedTd,compTd];
 }
 
 function recalcSums(){
-  [['fiscalBody','fiscalSum','fiscalUsedSum','fiscalCompSum'],
-   ['annivBody','annivSum','annivUsedSum','annivCompSum']].forEach(([tb,sum,used,comp])=>{
+  [['fiscalBody','fiscalSum','fiscalUsedSum','fiscalCompSum'],['annivBody','annivSum','annivUsedSum','annivCompSum']].forEach(([tb,sum,used,comp])=>{
     const tbody=document.getElementById(tb);
     const base=[...tbody.querySelectorAll('td.yellow.right')].reduce((a,e)=>a+(parseFloat(e.textContent)||0),0);
     const usedSum=[...tbody.querySelectorAll('input.num-input')].reduce((a,e)=>a+(parseFloat(e.value)||0),0);
-    const compSum=[...tbody.querySelectorAll('tr')].reduce((a,row)=>{
-      const last=row.querySelector('td:last-child'); return a+(last?(parseFloat(last.textContent)||0):0);
-    },0);
+    const compSum=[...tbody.querySelectorAll('tr')].reduce((a,row)=>{const last=row.querySelector('td:last-child');return a+(last?(parseFloat(last.textContent)||0):0);},0);
     document.getElementById(sum).textContent=(Math.round(base*10)/10).toString();
     document.getElementById(used).textContent=(Math.round(usedSum*10)/10).toString();
     document.getElementById(comp).textContent=(Math.round(compSum*10)/10).toString();
@@ -237,100 +204,26 @@ function recalcSums(){
 function calc(){
   const jStr=document.getElementById('joinDate').value;
   const lStr=document.getElementById('leaveDate').value;
-  if(!jStr) return;
-  const join=dt(jStr), leave=lStr?dt(lStr):null;
+  if(!jStr)return;
+  const join=dt(jStr),leave=lStr?dt(lStr):null;
+  const isLegacy=join<new Date('2017-05-29');
 
-  // 2017-05-29 이전 자동 특례 판정
-  const isLegacy = join < new Date('2017-05-29');
-
-  /* ---- 입사일 기준 ---- */
-  const aBody=document.getElementById('annivBody'); clearTbody(aBody);
+  /* 입사일 기준 */
+  const aBody=document.getElementById('annivBody');clearTbody(aBody);
   let aSum=0;
-
-  // 1년 미만
-  const mDates=monthlyAccruals(join, leave);
-  if(mDates.length){
-    const label=`매월 ${String(join.getDate()).padStart(2,'0')}일`;
-    const base=mDates.length*1.0;
-    const [u,c]=usedCompCells(base,'anniv-under1',isLegacy);
-    aBody.appendChild(tr([th('1년 미만'), td(label,'yellow'), td(base.toFixed(1),'yellow right mono'), u, c]));
-    aSum+=base;
-  }
-
-  // 만 1년 이후 정기연차
-  let n=1; let gen=addYears(join,1);
-  while(!leave || gen<=leave){
-    const days=regularDaysByYearN(n); const base=+days.toFixed(1);
-    const [u,c]=usedCompCells(base,'anniv-regular',isLegacy);
-    aBody.appendChild(tr([th(`${n}년근속`), td(fmtDate(gen),'yellow'), td(base.toFixed(1),'yellow right mono'), u, c]));
-    aSum+=base; n++; gen=addYears(gen,1); if(n>50) break;
-  }
+  const mDates=monthlyAccruals(join,leave);
+  if(mDates.length){const label=`매월 ${String(join.getDate()).padStart(2,'0')}일`;const base=mDates.length;const[u,c]=usedCompCells(base,'anniv-under1',isLegacy);aBody.appendChild(tr([th('1년 미만'),td(label,'yellow'),td(base.toFixed(1),'yellow right mono'),u,c]));aSum+=base;}
+  let n=1,gen=addYears(join,1);
+  while(!leave||gen<=leave){const days=regularDaysByYearN(n);const base=+days.toFixed(1);const[u,c]=usedCompCells(base,'anniv-regular',isLegacy);aBody.appendChild(tr([th(`${n}년근속`),td(fmtDate(gen),'yellow'),td(base.toFixed(1),'yellow right mono'),u,c]));aSum+=base;n++;gen=addYears(gen,1);if(n>50)break;}
   document.getElementById('annivSum').textContent=(Math.round(aSum*10)/10).toString();
 
-  /* ---- 회계연도 기준 ---- */
-  const fBody=document.getElementById('fiscalBody'); clearTbody(fBody);
+  /* 회계연도 기준 */
+  const fBody=document.getElementById('fiscalBody');clearTbody(fBody);
   let fSum=0;
-
   const firstAnniv=addYears(join,1);
-  const monthsAll=monthlyAccruals(join, leave);
+  const monthsAll=monthlyAccruals(join,leave);
   const monthsY1=monthsAll.filter(d=>d.getFullYear()===join.getFullYear());
   const monthsCarry=monthsAll.filter(d=>d.getFullYear()!==join.getFullYear());
   const monthLabel=`매월 ${String(join.getDate()).padStart(2,'0')}일`;
 
-  // 1년차(입사연도 내 월차)
-  {
-    const base=monthsY1.length*1.0;
-    const [u,c]=usedCompCells(base,'fiscal-y1',isLegacy);
-    fBody.appendChild(tr([th('1년차'), td(monthLabel,'yellow'), td(base.toFixed(1),'yellow right mono'), u, c]));
-    fSum+=base;
-  }
-  // 2년차 @ (carry)
-  {
-    const base=monthsCarry.length*1.0;
-    const [u,c]=usedCompCells(base,'fiscal-y2carry',isLegacy);
-    fBody.appendChild(tr([th('2년차 @'), td(monthLabel,'yellow'), td(base.toFixed(1),'yellow right mono'), u, c]));
-    fSum+=base;
-  }
-  // 2년차(비례연차): 다음 해 1/1 이전에 퇴사하면 표시하지 않음
-  {
-    const jan1Next = new Date(firstAnniv.getFullYear(), 0, 1); // 다음 해 1/1
-    if (!leave || leave >= jan1Next) {
-      const endPrevYear=new Date(join.getFullYear(),11,31);
-      let prorate=0;
-      if(endPrevYear>=join){
-        const svcPrev=daysInclusive(join,endPrevYear);
-        const raw=(svcPrev/365)*15;
-        prorate=Math.ceil(raw*10)/10; // 둘째자리 올림 → 1자리 표시
-      }
-      const base=+prorate.toFixed(1);
-      const [u,c]=usedCompCells(base,'fiscal-y2prorate',isLegacy);
-      fBody.appendChild(tr([th('2년차(비례연차)'), td(`${jan1Next.getFullYear()}-01-01`,'yellow'), td(base.toFixed(1),'yellow right mono'), u, c]));
-      fSum+=base;
-    }
-  }
-  // 3년차부터: 3·4년차 15, 5년차부터 가산
-  {
-    let fyYear = firstAnniv.getFullYear()+1; // 3년차 해
-    let fyN = 2;                             // 표시연차 = fyN+1 (3년차부터)
-    let fyDate = addYears(firstAnniv,1);
-    while(!leave || fyDate<=leave){
-      const displayYear = fyN + 1;                  // 3,4,5...
-      const days = fiscalDaysByDisplayYear(displayYear);
-      const base = +days.toFixed(1);
-      const [u,c]=usedCompCells(base,'fiscal-regular',isLegacy);
-      fBody.appendChild(tr([th(`${displayYear}년차`), td(`${fyYear}-01-01`,'yellow'), td(base.toFixed(1),'yellow right mono'), u, c]));
-      fSum+=base;
-      fyN++; fyYear++; fyDate=addYears(fyDate,1);
-      if(fyN>50) break;
-    }
-  }
-  document.getElementById('fiscalSum').textContent=(Math.round(fSum*10)/10).toString();
-
-  // 합계 갱신
-  recalcSums();
-}
-
-document.getElementById('calcBtn').addEventListener('click', calc);
-</script>
-</body>
-</html>
+  {const base=monthsY1.length;const[u,c]=usedCompCells(base,'fiscal-y1',isLegacy);fBody.appendChild(tr([th('1년차'),td

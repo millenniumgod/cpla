@@ -19,12 +19,21 @@
   *{box-sizing:border-box}
   html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
     font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,Malgun Gothic,Helvetica,Arial,sans-serif}
+
+  /* ===== App bar: 브랜드(로고) 클릭 → 홈 ===== */
   .appbar{position:sticky;top:0;z-index:10;display:flex;gap:12px;align-items:center;justify-content:space-between;
     padding:12px 16px;background:var(--bg);border-bottom:1px solid var(--line);backdrop-filter:saturate(140%) blur(6px)}
-  .brand{font-weight:800;color:var(--title)}
+  .brand a{display:inline-flex;align-items:center;gap:10px;
+    font-weight:900;color:var(--title);text-decoration:none;letter-spacing:.2px}
+  .brand .logo{
+    width:28px;height:28px;border-radius:8px;display:inline-block;
+    background:linear-gradient(135deg,#0a2a60 0%, #2a66ff 60%, #19a06a 100%);
+    box-shadow:0 2px 8px rgba(0,0,0,.15)
+  }
   select,.btn{border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--surface);color:var(--text);outline:none;transition:.15s}
   select:hover{border-color:color-mix(in oklab, var(--accent) 30%, var(--line))}
   .btn{border:1px solid var(--accent);background:color-mix(in oklab, var(--accent) 12%, var(--surface));font-weight:700;cursor:pointer}
+
   .container{max-width:1100px;margin:24px auto 80px;padding:0 16px}
   .sheet{background:var(--surface);border:1px solid var(--line);border-radius:18px;overflow:hidden;box-shadow:0 8px 30px rgba(0,0,0,.08)}
   .sheet h1{margin:0;padding:18px;text-align:center;font-size:20px;font-weight:800;color:var(--title);
@@ -34,6 +43,7 @@
     outline:none;transition:.15s;box-shadow:0 0 0 0 var(--ring)}
   .controls input::placeholder{color:#9aa6b2}
   .controls input:focus{border-color:var(--accent);box-shadow:0 0 0 6px var(--ring)}
+
   .tables{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:16px}
   @media (max-width:900px){.tables{grid-template-columns:1fr}}
   .table-wrap{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--surface)}
@@ -48,20 +58,38 @@
   .num-input{width:100%;text-align:right;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--text)}
   .num-input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 4px var(--ring)}
   .note{padding:16px;font-size:13px;color:var(--muted);border-top:1px solid var(--line);line-height:1.6}
+
+  /* 합계 강조 */
+  .highlight-cell{background:#fffdf7;border:2px inset #000;border-radius:12px;font-weight:700}
+
+  /* ===== Footer(공통 고지) ===== */
+  footer.site-footer{
+    margin:28px auto 40px; max-width:1100px; padding:16px;
+    color:var(--muted); font-size:12.5px; line-height:1.7;
+  }
+  footer.site-footer .brand-inline{
+    font-weight:900; color:var(--title);
+  }
 </style>
 </head>
 <body>
 
-<!-- 상단 바: 홈/다른 계산기 내비게이션 -->
+<!-- App bar: 로고 클릭하면 메인(index.html)으로 이동 -->
 <div class="appbar">
-  <div class="brand">연차휴가 계산기</div>
+  <div class="brand">
+    <a href="./" aria-label="LISANG Lab 홈으로">
+      <span class="logo" aria-hidden="true"></span>
+      LISANG&nbsp;Lab
+    </a>
+  </div>
   <div style="display:flex;gap:10px;align-items:center;">
     <label for="navSelect" class="subtle" style="font-size:12px;color:var(--muted);">계산기</label>
     <select id="navSelect">
       <option value="./">메인</option>
       <option value="./severance.html">퇴직금 계산기</option>
       <option value="./annual.html" selected>연차휴가 계산기</option>
-      <option value="./hours52.html">주52시간 계산기</option>
+      <option value="./hours52.html">주휴시간 계산기</option>
+      <option value="./parental.html">출산·육아휴직 계산기</option>
     </select>
     <button id="themeBtn" class="btn" type="button">🌙 다크 모드</button>
   </div>
@@ -94,9 +122,9 @@
           <tr>
             <th>합계</th>
             <td class="yellow"></td>
-            <td class="yellow right mono" id="fiscalSum">0</td>
-            <td class="right mono" id="fiscalUsedSum">0</td>
-            <td class="right mono" id="fiscalCompSum">0</td>
+            <td class="yellow right mono highlight-cell" id="fiscalSum">0</td>
+            <td class="right mono highlight-cell" id="fiscalUsedSum">0</td>
+            <td class="right mono highlight-cell" id="fiscalCompSum">0</td>
           </tr>
         </table>
       </div>
@@ -116,9 +144,9 @@
           <tr>
             <th>합계</th>
             <td class="yellow"></td>
-            <td class="yellow right mono" id="annivSum">0</td>
-            <td class="right mono" id="annivUsedSum">0</td>
-            <td class="right mono" id="annivCompSum">0</td>
+            <td class="yellow right mono highlight-cell" id="annivSum">0</td>
+            <td class="right mono highlight-cell" id="annivUsedSum">0</td>
+            <td class="right mono highlight-cell" id="annivCompSum">0</td>
           </tr>
         </table>
       </div>
@@ -132,13 +160,22 @@
   </div>
 </div>
 
+<!-- 공통 푸터 -->
+<footer class="site-footer">
+  ⓒ 2025 <span class="brand-inline">LISANG Lab</span>. all rights reserved.<br />
+  본 사이트의 콘텐츠(문서, 코드, 디자인, 계산 로직 등)는 비영리적 목적의 공유·인용·배포는 출처(‘LISANG Lab’)를 명시하면 자유롭게 허용합니다.<br />
+  단, 동의없는 상업적 이용(영리 목적의 복제·배포·판매·재가공 등)은 금지됩니다.<br />
+  본 계산기는 참고용이며, 계산 결과에 따른 법적 책임은 지지 않습니다.<br />
+  이용 중 오류 제보나 개선 제안은 <a href="mailto:lisang.hr.lab@gmail.com">lisang.hr.lab@gmail.com</a>으로 연락해 주세요.
+</footer>
+
 <script>
-/* ===== 네비게이션 ===== */
+/* 네비게이션(셀렉트는 유지) */
 document.getElementById('navSelect').addEventListener('change', e=>{
   if(e.target.value) location.href = e.target.value;
 });
 
-/* ===== Theme toggle ===== */
+/* 테마 */
 (function(){
   const saved = localStorage.getItem('theme');
   if(saved) document.documentElement.setAttribute('data-theme', saved);
@@ -156,7 +193,7 @@ document.getElementById('themeBtn').addEventListener('click',()=>{
   updateThemeBtn();
 });
 
-/* ===== Date helpers ===== */
+/* 날짜 유틸 */
 function toYmd(val){
   const v=(val||'').replace(/\D/g,''); if(v.length!==8) return null;
   const y=v.slice(0,4),m=v.slice(4,6),d=v.slice(6,8);
@@ -173,7 +210,7 @@ function addMonths(date,n){const d=new Date(date),day=d.getDate();d.setMonth(d.g
 function addYears(date,n){const d=new Date(date);d.setFullYear(d.getFullYear()+n);return d;}
 function daysInclusive(a,b){const A=(a instanceof Date)?a:new Date(a);const B=(b instanceof Date)?b:new Date(b);return Math.max(0,Math.floor((B-A)/86400000)+1);}
 
-/* ===== Logic ===== */
+/* 로직(기존) */
 function monthlyAccruals(join,leave){
   const first=addYears(join,1);
   const end=(leave && leave<first)?leave:first;
@@ -182,14 +219,7 @@ function monthlyAccruals(join,leave){
   return arr.filter(d=>d<first && (!leave || d<=leave));
 }
 function regularDaysByYearN(n){return Math.min(25,15+Math.floor((n-1)/2));}
-/* 회계연도 표시기준: 3·4년차=15, 5년차부터 가산(5·6=16, 7·8=17 … 상한 25) */
-function fiscalDaysByDisplayYear(y){
-  if(y<=4) return 15;
-  const add=Math.floor((y-3)/2);
-  return Math.min(25,15+add);
-}
-
-/* 발생일이 퇴사일 이후(또는 퇴사일 미입력)일 때만 표시 */
+function fiscalDaysByDisplayYear(y){if(y<=4)return 15;const add=Math.floor((y-3)/2);return Math.min(25,15+add);}
 const showIfAfterLeave = (accrualDate, leave) => (!leave || leave >= accrualDate);
 
 function clearTbody(tb){while(tb.firstChild)tb.removeChild(tb.firstChild);}
@@ -202,23 +232,14 @@ function usedCompCells(baseDays,typeTag,isLegacy){
   const inp=document.createElement('input');
   inp.type='number'; inp.min='0'; inp.step='0.1'; inp.value='0'; inp.className='num-input mono';
   usedTd.appendChild(inp);
-
   const compTd=document.createElement('td'); compTd.className='right mono';
   function update(){
     let comp=0;
-    // 특례: 2017-05-29 이전 입사자는 해당 구간 보상일수 0
-    if(isLegacy && (typeTag==='fiscal-y1' || typeTag==='fiscal-y2carry' || typeTag==='anniv-under1')){
-      comp = 0;
-    }else{
-      const used=parseFloat(inp.value)||0;
-      comp = Math.max(0, baseDays - used);
-    }
-    compTd.textContent=(Math.round(comp*10)/10).toString();
-    recalcSums();
+    if(isLegacy && (typeTag==='fiscal-y1'||typeTag==='fiscal-y2carry'||typeTag==='anniv-under1')) comp=0;
+    else {const used=parseFloat(inp.value)||0; comp=Math.max(0,baseDays-used);}
+    compTd.textContent=(Math.round(comp*10)/10).toString(); recalcSums();
   }
-  inp.addEventListener('input', update);
-  update();
-  return [usedTd, compTd];
+  inp.addEventListener('input',update); update(); return [usedTd,compTd];
 }
 
 function recalcSums(){
@@ -236,104 +257,81 @@ function recalcSums(){
   });
 }
 
-/* ===== Main calc ===== */
+/* 메인 계산 (기존) */
 function calc(){
   const jStr=document.getElementById('joinDate').value;
   const lStr=document.getElementById('leaveDate').value;
-  if(!jStr) return;
-  const join=dt(jStr), leave=lStr?dt(lStr):null;
+  if(!jStr)return;
+  const join=dt(jStr),leave=lStr?dt(lStr):null;
+  const isLegacy=join<new Date('2017-05-29');
 
-  // 2017-05-29 이전 자동 특례 판정
-  const isLegacy = join < new Date('2017-05-29');
-
-  /* ---- 입사일 기준 ---- */
-  const aBody=document.getElementById('annivBody'); clearTbody(aBody);
-  let aSum=0;
-
-  // 1년 미만
-  const mDates=monthlyAccruals(join, leave);
+  /* 입사일 기준 */
+  const aBody=document.getElementById('annivBody');clearTbody(aBody);let aSum=0;
+  const mDates=monthlyAccruals(join,leave);
   if(mDates.length){
     const label=`매월 ${String(join.getDate()).padStart(2,'0')}일`;
-    const base=mDates.length*1.0;
-    const [u,c]=usedCompCells(base,'anniv-under1',isLegacy);
-    aBody.appendChild(tr([th('1년 미만'), td(label,'yellow'), td(base.toFixed(1),'yellow right mono'), u, c]));
-    aSum+=base;
+    const base=mDates.length*1.0;const[u,c]=usedCompCells(base,'anniv-under1',isLegacy);
+    aBody.appendChild(tr([th('1년 미만'),td(label,'yellow'),td(base.toFixed(1),'yellow right mono'),u,c]));aSum+=base;
   }
-
-  // 만 1년 이후 정기연차
-  let n=1; let gen=addYears(join,1);
-  while(!leave || gen<=leave){
-    const days=regularDaysByYearN(n); const base=+days.toFixed(1);
-    const [u,c]=usedCompCells(base,'anniv-regular',isLegacy);
-    aBody.appendChild(tr([th(`${n}년근속`), td(fmtDate(gen),'yellow'), td(base.toFixed(1),'yellow right mono'), u, c]));
-    aSum+=base; n++; gen=addYears(gen,1); if(n>50) break;
+  let n=1;let gen=addYears(join,1);
+  while(!leave||gen<=leave){
+    const days=regularDaysByYearN(n);const base=+days.toFixed(1);
+    const[u,c]=usedCompCells(base,'anniv-regular',isLegacy);
+    aBody.appendChild(tr([th(`${n}년근속`),td(fmtDate(gen),'yellow'),td(base.toFixed(1),'yellow right mono'),u,c]));
+    aSum+=base;n++;gen=addYears(gen,1);if(n>50)break;
   }
   document.getElementById('annivSum').textContent=(Math.round(aSum*10)/10).toString();
 
-  /* ---- 회계연도 기준 ---- */
-  const fBody=document.getElementById('fiscalBody'); clearTbody(fBody);
-  let fSum=0;
-
+  /* 회계연도 기준 */
+  const fBody=document.getElementById('fiscalBody');clearTbody(fBody);let fSum=0;
   const firstAnniv=addYears(join,1);
-  const monthsAll=monthlyAccruals(join, leave);
+  const monthsAll=monthlyAccruals(join,leave);
   const monthsY1=monthsAll.filter(d=>d.getFullYear()===join.getFullYear());
   const monthsCarry=monthsAll.filter(d=>d.getFullYear()!==join.getFullYear());
   const monthLabel=`매월 ${String(join.getDate()).padStart(2,'0')}일`;
 
-  // 1년차(입사연도 내 월차) — 월 발생일은 monthlyAccruals에서 이미 퇴사일로 컷
-  {
-    const base=monthsY1.length*1.0;
-    const [u,c]=usedCompCells(base,'fiscal-y1',isLegacy);
-    fBody.appendChild(tr([th('1년차'), td(monthLabel,'yellow'), td(base.toFixed(1),'yellow right mono'), u, c]));
-    fSum+=base;
-  }
-  // 2년차 @ (carry) — 월 발생일 역시 컷됨
-  {
-    const base=monthsCarry.length*1.0;
-    const [u,c]=usedCompCells(base,'fiscal-y2carry',isLegacy);
-    fBody.appendChild(tr([th('2년차 @'), td(monthLabel,'yellow'), td(base.toFixed(1),'yellow right mono'), u, c]));
-    fSum+=base;
-  }
-  // 2년차(비례연차) — 발생일: 다음 해 1/1, 퇴사일 이후일 때만 표시
-  {
-    const jan1Next = new Date(join.getFullYear() + 1, 0, 1);
-    if (showIfAfterLeave(jan1Next, leave)) {
-      const endPrevYear=new Date(join.getFullYear(),11,31);
-      let prorate=0;
-      if(endPrevYear>=join){
-        const svcPrev=daysInclusive(join,endPrevYear);
-        const raw=(svcPrev/365)*15;
-        prorate=Math.ceil(raw*10)/10; // 둘째자리 올림 → 1자리
-      }
-      const base=+prorate.toFixed(1);
-      const [u,c]=usedCompCells(base,'fiscal-y2prorate',isLegacy);
-      fBody.appendChild(tr([th('2년차(비례연차)'), td(`${jan1Next.getFullYear()}-01-01`,'yellow'), td(base.toFixed(1),'yellow right mono'), u, c]));
-      fSum+=base;
+  {const base=monthsY1.length*1.0;const[u,c]=usedCompCells(base,'fiscal-y1',isLegacy);
+   fBody.appendChild(tr([th('1년차'),td(monthLabel,'yellow'),td(base.toFixed(1),'yellow right mono'),u,c]));fSum+=base;}
+
+  {const base=monthsCarry.length*1.0;const[u,c]=usedCompCells(base,'fiscal-y2carry',isLegacy);
+   fBody.appendChild(tr([th('2년차 @'),td(monthLabel,'yellow'),td(base.toFixed(1),'yellow right mono'),u,c]));fSum+=base;}
+
+  { // 2년차(비례연차)
+    const endPrevYear=new Date(join.getFullYear(),11,31);
+    let prorate=0;
+    if(endPrevYear>=join){
+      const svcPrev=daysInclusive(join,endPrevYear);
+      const raw=(svcPrev/365)*15;
+      prorate=Math.ceil(raw*10)/10;
+    }
+    const base=+prorate.toFixed(1);
+    const[u,c]=usedCompCells(base,'fiscal-y2prorate',isLegacy);
+    const accrual = new Date(`${firstAnniv.getFullYear()}-01-01`);
+    if(showIfAfterLeave(accrual, leave)){ // 퇴사일 이후 발생이면 숨김
+      fBody.appendChild(tr([th('2년차(비례연차)'),td(`${firstAnniv.getFullYear()}-01-01`,'yellow'),
+        td(base.toFixed(1),'yellow right mono'),u,c])); fSum+=base;
     }
   }
-  // 3년차부터 — 해당 연도 1/1이 퇴사일 이후일 때만 표시
-  {
-    let fyYear = firstAnniv.getFullYear()+1; // 3년차 해
-    let fyN = 2;                             // 표시연차 = fyN+1 (3년차부터)
-    let fyDate = addYears(firstAnniv,1);     // 만 2년 도달일(참고)
-    while(true){
-      const displayYear = fyN + 1;                 // 3,4,5...
-      const fyJan1 = new Date(fyYear, 0, 1);       // 발생일(연초)
-      if (!showIfAfterLeave(fyJan1, leave)) break; // 발생일이 퇴사 이전이면 종료
 
+  { // 3년차부터: 3·4년차 15, 5년차부터 가산
+    let fyYear = firstAnniv.getFullYear()+1; // 3년차 해
+    let fyN = 2;                             // 표시연차 = fyN+1
+    let fyDate = addYears(firstAnniv,1);     // 3년차 발생 기준일(만2년 도달일)
+    while(!leave || fyDate<=leave){
+      const displayYear = fyN + 1; // 3,4,5,...
       const days = fiscalDaysByDisplayYear(displayYear);
       const base = +days.toFixed(1);
-      const [u,c]=usedCompCells(base,'fiscal-regular',isLegacy);
-      fBody.appendChild(tr([th(`${displayYear}년차`), td(`${fyYear}-01-01`,'yellow'), td(base.toFixed(1),'yellow right mono'), u, c]));
-      fSum+=base;
-
-      fyN++; fyYear++; fyDate=addYears(fyDate,1);
-      if(fyN>50) break;
+      const[u,c]=usedCompCells(base,'fiscal-regular',isLegacy);
+      const accrual = new Date(`${fyYear}-01-01`);
+      if(showIfAfterLeave(accrual, leave)){
+        fBody.appendChild(tr([th(`${displayYear}년차`),td(`${fyYear}-01-01`,'yellow'),
+          td(base.toFixed(1),'yellow right mono'),u,c])); fSum+=base;
+      }
+      fyN++; fyYear++; fyDate=addYears(fyDate,1); if(fyN>50)break;
     }
   }
   document.getElementById('fiscalSum').textContent=(Math.round(fSum*10)/10).toString();
 
-  // 합계 갱신
   recalcSums();
 }
 

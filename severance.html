@@ -13,7 +13,7 @@
     --line:#e5eaf0; --muted:#516173; --text:#0d1b2a; --title:#0a0f18;
     --accent:#2a66ff; --accent-2:#19a06a; --danger:#e24545; --ring:rgba(42,102,255,.22);
 
-    /* section header unified color (from swatch: deep navy) */
+    /* section header unified color */
     --sec-bg:#0a2a60;  /* 필요 시 이 값만 바꾸면 됩니다 */
     --sec-fg:#ffffff;
   }
@@ -22,7 +22,7 @@
     --line:#1f2a3a; --muted:#8ea4b8; --text:#eef4fb; --title:#ffffff;
     --accent:#62a8ff; --accent-2:#19c37d; --danger:#ff6b6b; --ring:rgba(98,168,255,.35);
 
-    --sec-bg:#0a2a60;  /* 다크에서도 동일 네이비로 유지 */
+    --sec-bg:#0a2a60;
     --sec-fg:#ffffff;
   }
 
@@ -30,17 +30,25 @@
   *{box-sizing:border-box}
   html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
     font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,Malgun Gothic,Helvetica,Arial,sans-serif}
-  a{color:var(--accent);text-decoration:none}
+  a{color:var(--title);text-decoration:none}
 
-  /* App bar */
+  /* ===== App bar (공통 로고/네비) ===== */
   .appbar{
     position:sticky;top:0;z-index:10;
     display:flex;justify-content:space-between;align-items:center;gap:12px;
     padding:12px 16px;background:var(--bg);border-bottom:1px solid var(--line);
     backdrop-filter:saturate(140%) blur(6px)
   }
-  .brand{font-weight:800;letter-spacing:-.2px;color:var(--title)}
-  .brand span{opacity:.65;font-weight:600}
+  /* 로고/브랜드 */
+  .brand a{
+    display:inline-flex;align-items:center;gap:10px;
+    font-weight:900;color:var(--title);letter-spacing:.2px;
+  }
+  .brand .logo{
+    width:28px;height:28px;border-radius:8px;display:inline-block;
+    background:linear-gradient(135deg,#0a2a60 0%, #2a66ff 60%, #19a06a 100%);
+    box-shadow:0 2px 8px rgba(0,0,0,.15)
+  }
   .bar-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
   select, .btn, input[type="text"], input[type="number"]{
     background:var(--surface);color:var(--text);border:1px solid var(--line);border-radius:12px;
@@ -51,15 +59,13 @@
   .btn{cursor:pointer;font-weight:700}
   .btn.primary{border-color:var(--accent);background:color-mix(in oklab, var(--accent) 12%, var(--surface));}
   .btn.ghost{background:var(--surface)}
-  .toggle{display:inline-flex;align-items:center;gap:8px;border-radius:999px;padding:8px 12px}
-  .toggle span{font-size:12px;color:var(--muted)}
+  .subtle{font-size:12px;color:var(--muted)}
 
   /* Layout */
   .container{max-width:1100px;margin:28px auto 80px;padding:0 16px}
   .sheet{background:var(--elev);border:1px solid var(--line);border-radius:18px;overflow:hidden;box-shadow:0 8px 30px color-mix(in oklab, #000 20%, transparent)}
   .sheet h1{margin:0;padding:18px 18px 16px;background:color-mix(in oklab, var(--surface) 92%, var(--bg));
     text-align:center;font-size:20px;font-weight:800;color:var(--title);letter-spacing:.6px;border-bottom:1px solid var(--line)}
-  .subtle{font-size:12px;color:var(--muted)}
 
   /* Tables (responsive) */
   .section-wrap{padding:12px 16px}
@@ -80,44 +86,42 @@
   .row-actions{display:flex;gap:10px;align-items:center;padding:16px;border-top:1px solid var(--line);background:var(--surface)}
   .note{padding:18px;border-top:1px solid var(--line);background:var(--surface);color:var(--muted);line-height:1.7;font-size:13px;border-bottom-left-radius:18px;border-bottom-right-radius:18px}
 
-/* 차인지급액 강조 셀 - 깔끔한 모서리 & 텍스트 가림 없음 */
-.highlight-cell{
-  background:#fffdf5;                /* 아주 연한 상아색 */
-  font-weight:800;
-  border:0 !important;               /* 기존 border/충돌 제거 */
-  box-shadow: inset 0 0 0 2px #000;  /* 내부에 2px 검은 테두리 */
-  border-bottom-right-radius:14px;   /* .table-wrap 반경(14px)과 맞춤 */
-  padding-right:12px;                /* 숫자 여백 안전 확보 */
-}
+  /* 차인지급액 강조 셀 */
+  .highlight-cell{
+    background:#fffdf5;                /* 아주 연한 상아색 */
+    font-weight:800;
+    border:0 !important;               /* 표 기본 경계와 충돌 방지 */
+    box-shadow: inset 0 0 0 2px #000;  /* 내부 검은 테두리 */
+    border-bottom-right-radius:14px;   /* .table-wrap 반경과 맞춤 */
+    padding-right:12px;
+  }
 
-
-
+  /* ===== Footer ===== */
+  footer{
+    max-width:1100px;margin:24px auto;padding:12px 16px;color:var(--muted);font-size:12px;line-height:1.6
+  }
 </style>
 </head>
 <body>
 
-<!-- Sticky top bar -->
+<!-- 상단 바 -->
 <div class="appbar">
   <div class="brand">
-  <a href="./" aria-label="LISANG Lab 홈으로">
-    <span class="logo" aria-hidden="true"></span>
-    LISANG&nbsp;Lab
-  </a>
-</div>
-
+    <a href="./" aria-label="LISANG Lab 홈으로">
+      <span class="logo" aria-hidden="true"></span>
+      LISANG&nbsp;Lab
+    </a>
+  </div>
   <div class="bar-actions">
-    <label for="calcSelect" class="subtle">계산기</label>
-    <select id="calcSelect">
-      <option value="">— 선택 —</option>
-      <option value="./severance.html" selected>퇴직금 계산기</option>
-      <option value="./annual.html">연차수당 계산기</option>
-      <option value="./hours52.html">주52시간 계산기</option>
+    <label for="navSelect" class="subtle">계산기</label>
+    <select id="navSelect" title="다른 계산기로 이동">
       <option value="./">메인</option>
+      <option value="./severance.html" selected>퇴직금 계산기</option>
+      <option value="./annual.html">연차휴가 계산기</option>
+      <option value="./hours52.html">주휴시간 계산기</option>
+      <option value="./parental.html">출산·육아휴직 계산기</option>
     </select>
-
-    <button id="themeBtn" class="btn toggle" type="button" title="다크 모드 전환">
-      <span id="themeIcon">🌙</span><span>다크 모드</span>
-    </button>
+    <button id="themeBtn" class="btn" type="button" title="다크 모드 전환">🌙 다크 모드</button>
   </div>
 </div>
 
@@ -263,7 +267,7 @@
           </tr>
           <tr>
             <th>차인지급액</th>
-              <td class="right mono highlight-cell" id="diffPay" colspan="7">0</td>
+            <td class="right mono highlight-cell" id="diffPay" colspan="7">0</td>
           </tr>
         </table>
       </div>
@@ -282,7 +286,20 @@
   </div>
 </div>
 
+<footer>
+  ⓒ 2025 LISANG Lab. all rights reserved.<br>
+  본 사이트의 콘텐츠(문서, 코드, 디자인, 계산 로직 등)는 비영리적 목적의 공유·인용·배포는 출처(‘LISANG Lab’)를 명시하면 자유롭게 허용합니다.<br>
+  단, 동의없는 상업적 이용(영리 목적의 복제·배포·판매·재가공 등)은 금지됩니다.<br>
+  본 계산기는 참고용이며, 계산 결과에 따른 법적 책임은 지지 않습니다.<br>
+  이용 중 오류 제보나 개선 제안은 <a href="mailto:lisang.hr.lab@gmail.com">lisang.hr.lab@gmail.com</a> 으로 연락해 주세요.
+</footer>
+
 <script>
+  /* ===== 네비게이션 ===== */
+  document.getElementById('navSelect').addEventListener('change', e=>{
+    if(e.target.value) location.href = e.target.value;
+  });
+
   /* ===== Theme toggle (persist) ===== */
   (function(){
     const saved = localStorage.getItem('theme');
@@ -292,9 +309,8 @@
 
   function updateThemeBtn(){
     const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-    document.getElementById('themeIcon').textContent = isDark ? '☀️' : '🌙';
+    document.getElementById('themeBtn').textContent = isDark ? '☀️ 라이트 모드' : '🌙 다크 모드';
     document.getElementById('themeBtn').title = isDark ? '라이트 모드로' : '다크 모드로';
-    document.querySelector('#themeBtn span:last-child').textContent = isDark ? '라이트 모드' : '다크 모드';
   }
 
   document.getElementById('themeBtn').addEventListener('click', ()=>{
@@ -306,9 +322,7 @@
   });
 
   /* ===== Navigation ===== */
-  document.getElementById('calcSelect').addEventListener('change', e=>{
-    if(e.target.value) location.href = e.target.value;
-  });
+  /* already wired via #navSelect */
 
   /* ===== Date UX: 20240101 -> 2024-01-01 ===== */
   function toYmd(val){
@@ -367,7 +381,7 @@
     const wages=['p1w','p2w','p3w','p4w'].map(id=>Number(document.getElementById(id).value||0));
     const wageSum=wages.reduce((a,b)=>a+b,0);
 
-    /* (2) 연차/상여: 입력값을 3/12로 자동 반영 */
+    /* 연차/상여: 입력값을 3/12로 자동 반영 */
     const annInput=Number(document.getElementById('ann3m').value||0);
     const bonInput=Number(document.getElementById('bon3m').value||0);
     const annAdj=annInput*(3/12);

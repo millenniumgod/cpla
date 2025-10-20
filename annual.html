@@ -325,7 +325,8 @@ function recalcSums(){
   [['fiscalBody','fiscalSum','fiscalUsedSum','fiscalCompSum'],
    ['annivBody','annivSum','annivUsedSum','annivCompSum']].forEach(([tbodyId,sumId,usedId,compId])=>{
     const tbody=document.getElementById(tbodyId);
-    const base=[...tbody.querySelectorAll('td.yellow')].reduce((a,e)=>a+(parseFloat(e.textContent)||0),0);
+// 노란색 + 오른쪽정렬(=숫자 셀)만 집계
+    const base = [...tbody.querySelectorAll('td.yellow.right')].reduce((a, e) => a + (parseFloat(e.textContent) || 0), 0);
     const used=[...tbody.querySelectorAll('input.num-input')].reduce((a,e)=>a+(parseFloat(e.value)||0),0);
     const comp=[...tbody.querySelectorAll('tr')].reduce((a,row)=>{
       const last=row.querySelector('td:last-child'); return a+(last?(parseFloat(last.textContent)||0):0);

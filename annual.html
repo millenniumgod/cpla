@@ -1,9 +1,12 @@
  (cd "$(git rev-parse --show-toplevel)" && git apply --3way <<'EOF' 
 diff --git a/annual.html b/annual.html
-index 285acf21a183d692fcea1006310260d463046dfb..a77f90b5affa16ad34639ae0a2fe96f1276b9cc7 100644
+index 285acf21a183d692fcea1006310260d463046dfb..f0257921880daa81ea458dce46e5a0e508d795ef 100644
 --- a/annual.html
 +++ b/annual.html
-@@ -238,68 +238,82 @@ document.getElementById('navSelect').addEventListener('change', e=>{
+@@ -235,71 +235,91 @@ document.getElementById('navSelect').addEventListener('change', e=>{
+   if(saved) document.documentElement.setAttribute('data-theme', saved);
+   updateThemeBtn();
+ })();
  function updateThemeBtn(){
    const dark = document.documentElement.getAttribute('data-theme')==='dark';
    document.getElementById('themeBtn').textContent = dark ? '☀️ 라이트 모드' : '🌙 다크 모드';
@@ -26,6 +29,12 @@ index 285acf21a183d692fcea1006310260d463046dfb..a77f90b5affa16ad34639ae0a2fe96f1
  ['joinDate','leaveDate'].forEach(id=>{
    const el=document.getElementById(id);
    el.addEventListener('input', ()=>{ const fm=toYmd(el.value); if(fm) el.value=fm; });
++  el.addEventListener('keydown', e=>{
++    if(e.key==='Enter'){
++      e.preventDefault();
++      calc();
++    }
++  });
  });
  
  /* ===== Helpers ===== */
@@ -91,7 +100,7 @@ index 285acf21a183d692fcea1006310260d463046dfb..a77f90b5affa16ad34639ae0a2fe96f1
  
    const compTd=document.createElement('td'); compTd.className='right mono';
  
-@@ -321,121 +335,122 @@ function usedCompCells(baseDays, typeTag, isLegacy){
+@@ -321,121 +341,122 @@ function usedCompCells(baseDays, typeTag, isLegacy){
  }
  
  /* 합계 집계 */

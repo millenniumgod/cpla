@@ -10,11 +10,13 @@
     --bg:#f6f8fb; --surface:#fff; --line:#e5eaf0; --text:#0d1b2a; --muted:#516173;
     --title:#0a0f18; --accent:#2a66ff; --ring:rgba(42,102,255,.22);
     --sec-bg:#0a2a60; --sec-fg:#fff;
+    --input-soft:#edf0f4;
   }
   [data-theme="dark"]{
     --bg:#0a0e13; --surface:#0f1520; --line:#1f2a3a; --text:#eef4fb; --muted:#8ea4b8;
     --title:#fff; --accent:#62a8ff; --ring:rgba(98,168,255,.35);
     --sec-bg:#0a2a60; --sec-fg:#fff;
+    --input-soft:rgba(255,255,255,.04);
   }
   *{box-sizing:border-box}
   html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
@@ -36,27 +38,55 @@
 
   .table-wrap{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--surface)}
   table{width:100%;border-collapse:separate;border-spacing:0}
-  th,td{border-bottom:1px solid var(--line);padding:10px 12px;vertical-align:middle}
-  th{background:color-mix(in oklab, var(--surface) 90%, var(--bg));font-weight:700}
-  tr:last-child th,tr:last-child td{border-bottom:0}
-  .sec-title{background:var(--sec-bg)!important;color:var(--sec-fg)!important;text-align:left;font-weight:800}
+  th,td{border-bottom:1px solid var(--line);vertical-align:middle}
+  .sec-title{background:var(--sec-bg)!important;color:var(--sec-fg)!important;text-align:left;font-weight:800;padding:10px 12px}
 
-  .num-input{width:100%;text-align:right;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--text)}
-  .num-input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 4px var(--ring)}
+  /* ▶ 여기부터: 가로표 스타일 */
+  .day-grid th,
+  .day-grid td{
+    text-align:center;
+    padding:6px 4px;
+    font-size:13px;
+  }
+  .day-grid thead th{
+    background:color-mix(in oklab, var(--surface) 90%, var(--bg));
+    font-weight:700;
+  }
+  .day-input{
+    width:66px;
+    text-align:center;
+    padding:5px 6px;
+    border-radius:8px;
+    border:1px solid transparent;
+    background:var(--input-soft);
+    color:var(--text);
+    font-variant-numeric:tabular-nums;
+    outline:none;
+  }
+  .day-input:focus{
+    border-color:var(--accent);
+    box-shadow:0 0 0 3px var(--ring);
+    background:var(--surface);
+  }
+  .applied-cell{
+    font-variant-numeric:tabular-nums;
+    font-weight:600;
+  }
+
   .right{text-align:right}
   .mono{font-variant-numeric:tabular-nums}
 
-  .kpi{display:flex;gap:16px;flex-wrap:wrap;padding:16px}
+  .kpi{display:flex;gap:16px;flex-wrap:wrap;padding:16px 0 4px}
   .chip{flex:1 1 220px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px}
   .chip strong{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
   .chip .val{font-size:20px;font-weight:800}
 
-  .note{padding:14px 16px;border-top:1px solid var(--line);color:var(--muted);font-size:13px;line-height:1.6}
+  .note{padding:14px 16px 18px;border-top:1px solid var(--line);color:var(--muted);font-size:13px;line-height:1.6}
 </style>
 </head>
 <body>
 
-<!-- 상단 바: 홈/다른 계산기 내비게이션 포함 -->
+<!-- 상단 바 -->
 <div class="appbar">
   <div class="brand">주휴시간 계산기</div>
   <div style="display:flex;gap:10px;align-items:center;">
@@ -77,23 +107,28 @@
 
     <div class="controls">
       <button id="resetBtn" class="btn" type="button">초기화</button>
-      <span style="font-size:12px;color:var(--muted)">각 요일별 근로시간을 입력하세요. (하루 최대 8시간, 주 최대 40시간 반영)</span>
+      <span style="font-size:12px;color:var(--muted)">요일별 근로시간을 입력하세요. (하루 최대 8시간, 주 최대 40시간 반영)</span>
     </div>
 
     <div class="tables">
       <div class="table-wrap">
-        <table>
-          <tr><th class="sec-title" colspan="3">요일별 근로시간 입력</th></tr>
-          <tr><th style="width:30%">요일</th><th class="right">입력(시간)</th><th class="right">반영(시간)</th></tr>
-
-          <!-- Rows will be populated by JS, but you can keep this static if preferred -->
-          <tbody id="daysBody"></tbody>
-
-          <tr>
-            <th>합계</th>
-            <td class="right mono" id="sumInput">0</td>
-            <td class="right mono" id="sumCapped">0</td>
-          </tr>
+        <table class="day-grid">
+          <thead>
+            <tr><th class="sec-title" colspan="8">요일별 근로시간 입력</th></tr>
+            <tr id="row-names"></tr>
+          </thead>
+          <tbody>
+            <tr id="row-inputs"></tr>
+            <tr id="row-applied"></tr>
+            <tr>
+              <th style="text-align:right" colspan="7">합계</th>
+              <td style="text-align:center;">
+                <div style="font-size:12px;color:var(--muted);">입력 / 반영</div>
+                <div class="mono" id="sumInput">0.0</div>
+                <div class="mono" id="sumCapped">0.0</div>
+              </td>
+            </tr>
+          </tbody>
         </table>
       </div>
 
@@ -101,127 +136,7 @@
       <div class="kpi">
         <div class="chip">
           <strong>1주 소정근로시간 (최대 40시간)</strong>
-          <div class="val mono" id="weeklyStd">0</div>
+          <div class="val mono" id="weeklyStd">0.0</div>
         </div>
         <div class="chip">
-          <strong>1일 주휴시간 (주 소정근로시간 ÷ 5)</strong>
-          <div class="val mono" id="weeklyHolidayPerDay">0</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="note">
-      * 1일 8시간 초과 입력 시 8시간으로 자동 반영됩니다.<br>
-      * 1주 합계가 40시간을 초과하는 경우, 주 소정근로시간은 40시간으로 계산됩니다.<br>
-      * 본 계산기는 편의를 위한 도구로, 실제 적용은 취업규칙·단체협약 및 관계 법령을 확인하세요.
-    </div>
-  </div>
-</div>
-
-<script>
-/* ===== 네비게이션 & 테마 ===== */
-document.getElementById('navSelect').addEventListener('change', e=>{
-  if(e.target.value) location.href = e.target.value;
-});
-(function(){
-  const saved = localStorage.getItem('theme');
-  if(saved) document.documentElement.setAttribute('data-theme', saved);
-  updateThemeBtn();
-})();
-function updateThemeBtn(){
-  const dark=document.documentElement.getAttribute('data-theme')==='dark';
-  document.getElementById('themeBtn').textContent=dark?'☀️ 라이트 모드':'🌙 다크 모드';
-}
-document.getElementById('themeBtn').addEventListener('click',()=>{
-  const cur=document.documentElement.getAttribute('data-theme')||'light';
-  const next=cur==='light'?'dark':'light';
-  document.documentElement.setAttribute('data-theme',next);
-  localStorage.setItem('theme',next);
-  updateThemeBtn();
-});
-
-/* ===== Core ===== */
-const DAY_LABELS = ['일요일','월요일','화요일','수요일','목요일','금요일','토요일'];
-const MAX_PER_DAY = 8;
-const MAX_PER_WEEK = 40;
-
-function clampDay(v){
-  const n = isNaN(parseFloat(v)) ? 0 : parseFloat(v);
-  return Math.min(Math.max(n,0), MAX_PER_DAY);
-}
-
-function renderRows(){
-  const tbody = document.getElementById('daysBody');
-  tbody.innerHTML = '';
-  DAY_LABELS.forEach((name, idx)=>{
-    const tr = document.createElement('tr');
-
-    const th = document.createElement('th');
-    th.textContent = name;
-
-    const tdInput = document.createElement('td');
-    tdInput.className = 'right';
-    const input = document.createElement('input');
-    input.type = 'number'; input.min = '0'; input.step = '0.1'; input.value = '0';
-    input.className = 'num-input mono';
-    input.dataset.index = idx;
-    tdInput.appendChild(input);
-
-    const tdApplied = document.createElement('td');
-    tdApplied.className = 'right mono';
-    tdApplied.id = `applied-${idx}`;
-    tdApplied.textContent = '0';
-
-    tr.appendChild(th);
-    tr.appendChild(tdInput);
-    tr.appendChild(tdApplied);
-    tbody.appendChild(tr);
-
-    input.addEventListener('input', handleChange);
-    input.addEventListener('blur', handleChange);
-  });
-}
-
-function handleChange(e){
-  // 1) 1일 8시간 상한 반영(입력 자체를 보정)
-  const v = clampDay(e.target.value);
-  if (e.target.value !== String(v)) e.target.value = v;
-
-  // 2) 각 요일 반영값 업데이트
-  const idx = e.target.dataset.index;
-  document.getElementById(`applied-${idx}`).textContent = v.toFixed(1);
-
-  // 3) 합계 및 결과 갱신
-  recalc();
-}
-
-function recalc(){
-  const inputs = [...document.querySelectorAll('#daysBody input.num-input')];
-  const applied = inputs.map(inp => clampDay(inp.value));
-
-  const sumInput = inputs.reduce((a,inp)=>a + (parseFloat(inp.value)||0), 0);
-  const sumApplied = applied.reduce((a,b)=>a+b, 0);
-
-  // 주 소정근로시간: 합계 반영 후, 최대 40으로 캡
-  const weeklyStd = Math.min(sumApplied, MAX_PER_WEEK);
-  const weeklyHolidayPerDay = weeklyStd / 5;
-
-  // 화면 반영
-  document.getElementById('sumInput').textContent = sumInput.toFixed(1);
-  document.getElementById('sumCapped').textContent = sumApplied.toFixed(1);
-  document.getElementById('weeklyStd').textContent = weeklyStd.toFixed(1);
-  document.getElementById('weeklyHolidayPerDay').textContent = weeklyHolidayPerDay.toFixed(1);
-}
-
-document.getElementById('resetBtn').addEventListener('click', ()=>{
-  document.querySelectorAll('#daysBody input.num-input').forEach(i=> i.value='0');
-  DAY_LABELS.forEach((_,i)=> document.getElementById(`applied-${i}`).textContent='0');
-  recalc();
-});
-
-// 초기 렌더 및 1회 계산
-renderRows();
-recalc();
-</script>
-</body>
-</html>
+          <s

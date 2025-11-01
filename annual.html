@@ -264,7 +264,13 @@ function toYmd(val){
 
 /* ===== Helpers ===== */
 const dt = s => new Date(s);
-const fmtDate = d => d.toISOString().slice(0,10);
+// 여기만 바꿈: UTC 말고 로컬 기준 yyyy-mm-dd
+function fmtDate(d){
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  const da = String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${da}`;
+}
 function addMonths(date, n){
   const d=new Date(date); const day=d.getDate();
   d.setMonth(d.getMonth()+n);
@@ -396,7 +402,7 @@ function calc(){
     fBody.appendChild(tr([ th('2년차 @'), td(monthLabel,'yellow'), td(base.toFixed(1),'yellow right mono'), u, c ]));
     fSum += base;
   }
-  // 2년차(비례연차): 그 해 1/1이 퇴사일 이후면 안 보여줌
+  // 2년차(비례연차) — 해당 해 1/1이 퇴사일 이후면 안 표시
   {
     const rowDate = new Date(firstAnniv.getFullYear(), 0, 1); // 다음 해 1/1
     if (!leave || rowDate <= leave) {
@@ -412,7 +418,7 @@ function calc(){
       fSum += base;
     }
   }
-  // 3년차 이후: ★ 매년 1/1이 퇴사일보다 늦어지면 그 해부터는 출력 안 함
+  // 3년차 이후: 매년 1/1이 퇴사일보다 늦으면 그 해부터는 출력 안 함
   {
     let displayYear = 3;                      // 3년차부터
     let year = firstAnniv.getFullYear() + 1;  // 3년차가 되는 해
@@ -420,7 +426,6 @@ function calc(){
     while (true) {
       const rowDate = new Date(year, 0, 1);   // 매년 1월 1일 발생
 
-      // 퇴사일이 있고, 그 1/1이 퇴사일 이후면 그 해부터는 중단
       if (leave && rowDate > leave) break;
 
       const days = fiscalDaysByDisplayYear(displayYear);

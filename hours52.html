@@ -31,7 +31,6 @@
     border-bottom:1px solid var(--line);
     backdrop-filter:saturate(140%) blur(6px);
   }
-  /* annual.html 헤더와 동일한 형태 */
   .brand-link{
     display:flex;align-items:center;gap:10px;
     text-decoration:none;color:inherit;
@@ -108,9 +107,7 @@
     padding:10px 12px;
   }
 
-  /* 가로표 */
-  .day-grid th,
-  .day-grid td{
+  .day-grid th, .day-grid td{
     text-align:center;
     padding:6px 4px;
     font-size:13px;
@@ -120,7 +117,6 @@
     font-weight:700;
   }
 
-  /* 입력칸 - 보이게 */
   .day-input{
     width:68px;
     height:30px;
@@ -173,7 +169,6 @@
 
 <!-- 상단 바 -->
 <div class="appbar">
-  <!-- annual.html 과 동일한 구조 -->
   <a href="./" class="brand-link" aria-label="LISANG Lab 메인으로 이동">
     <span class="brand-icon"></span>
     <span class="brand-text">LISANG Lab</span>
@@ -203,20 +198,16 @@
       <div class="table-wrap">
         <table class="day-grid">
           <thead>
-            <tr><th class="sec-title" colspan="8">요일별 근로시간 입력</th></tr>
+            <tr><th class="sec-title" colspan="9">요일별 근로시간 입력</th></tr>
             <tr id="row-names"></tr>
           </thead>
           <tbody>
             <tr id="row-inputs"></tr>
             <tr id="row-applied"></tr>
-            <tr>
-              <th style="text-align:right" colspan="7">합계</th>                            
-            </tr>
           </tbody>
         </table>
       </div>
 
-      <!-- KPIs -->
       <div class="kpi">
         <div class="chip">
           <strong>1주 소정근로시간 (최대 40시간)</strong>
@@ -264,7 +255,7 @@ document.getElementById('themeBtn').addEventListener('click',()=>{
 const DAY_LABELS = ['일','월','화','수','목','금','토'];
 const MAX_PER_DAY = 8;
 const MAX_PER_WEEK = 40;
-const HOLIDAY_MIN = 15; // 1주 15시간 미만이면 주휴 미발생
+const HOLIDAY_MIN = 15;
 
 function clampDay(v){
   const n = isNaN(parseFloat(v)) ? 0 : parseFloat(v);
@@ -281,12 +272,10 @@ function renderGrid(){
   rowApplied.innerHTML = '';
 
   DAY_LABELS.forEach((name, idx)=>{
-    // 요일
     const th = document.createElement('th');
     th.textContent = name;
     rowNames.appendChild(th);
 
-    // 입력칸
     const tdInput = document.createElement('td');
     const input = document.createElement('input');
     input.type = 'number';
@@ -299,7 +288,6 @@ function renderGrid(){
     tdInput.appendChild(input);
     rowInputs.appendChild(tdInput);
 
-    // 반영칸
     const tdApplied = document.createElement('td');
     tdApplied.className = 'applied-cell';
     tdApplied.id = `applied-${idx}`;
@@ -310,12 +298,22 @@ function renderGrid(){
     input.addEventListener('blur', handleChange);
   });
 
-  // 마지막 열: 합계 열
+  // 합계 열
   const thSum = document.createElement('th');
   thSum.textContent = '합계';
   rowNames.appendChild(thSum);
-  rowInputs.appendChild(document.createElement('td'));
-  rowApplied.appendChild(document.createElement('td'));
+
+  const tdSumInput = document.createElement('td');
+  tdSumInput.id = 'sumCappedInput';
+  tdSumInput.className = 'applied-cell mono';
+  tdSumInput.textContent = '0.0';
+  rowInputs.appendChild(tdSumInput);
+
+  const tdSumApplied = document.createElement('td');
+  tdSumApplied.id = 'sumCapped';
+  tdSumApplied.className = 'applied-cell mono';
+  tdSumApplied.textContent = '0.0';
+  rowApplied.appendChild(tdSumApplied);
 }
 
 function handleChange(e){

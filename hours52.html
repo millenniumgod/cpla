@@ -22,9 +22,11 @@
   html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
     font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,Malgun Gothic,Helvetica,Arial,sans-serif}
   .appbar{position:sticky;top:0;z-index:10;display:flex;gap:12px;align-items:center;justify-content:space-between;
-    padding:12px 16px;background:var(--bg);border-bottom:1px solid var(--line);backdrop-filter:saturate(140%) blur(6px)}
-  .brand{font-weight:800;color:var(--title)}
-  select,.btn{border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--surface);color:var(--text);outline:none;transition:.15s}
+    padding:10px 16px;background:var(--bg);border-bottom:1px solid var(--line);backdrop-filter:saturate(140%) blur(6px)}
+  .brand-wrap{display:flex;gap:8px;align-items:center;text-decoration:none;color:inherit}
+  .brand-logo{width:32px;height:32px;border-radius:12px;object-fit:cover;display:block}
+  .brand-text{font-weight:800;color:var(--title);line-height:1}
+  select,.btn{border:1px solid var(--line);border-radius:12px;padding:8px 12px;background:var(--surface);color:var(--text);outline:none;transition:.15s;font-size:13px}
   select:hover{border-color:color-mix(in oklab, var(--accent) 30%, var(--line))}
   .btn{border:1px solid var(--accent);background:color-mix(in oklab, var(--accent) 12%, var(--surface));font-weight:700;cursor:pointer}
 
@@ -41,7 +43,7 @@
   th,td{border-bottom:1px solid var(--line);vertical-align:middle}
   .sec-title{background:var(--sec-bg)!important;color:var(--sec-fg)!important;text-align:left;font-weight:800;padding:10px 12px}
 
-  /* ▶ 여기부터: 가로표 스타일 */
+  /* ▶ 가로표 스타일 */
   .day-grid th,
   .day-grid td{
     text-align:center;
@@ -82,13 +84,18 @@
   .chip .val{font-size:20px;font-weight:800}
 
   .note{padding:14px 16px 18px;border-top:1px solid var(--line);color:var(--muted);font-size:13px;line-height:1.6}
+  .note-warning{color:#d02828;font-weight:600;margin-bottom:6px}
 </style>
 </head>
 <body>
 
 <!-- 상단 바 -->
 <div class="appbar">
-  <div class="brand">주휴시간 계산기</div>
+  <!-- 1. 로고 + 링크 -->
+  <a href="./" class="brand-wrap" aria-label="LISANG Lab 메인으로 이동">
+    <img src="./lisang-lab-logo.png" alt="LISANG Lab" class="brand-logo" />
+    <span class="brand-text">LISANG Lab</span>
+  </a>
   <div style="display:flex;gap:10px;align-items:center;">
     <label for="navSelect" class="subtle" style="font-size:12px;color:var(--muted);">계산기</label>
     <select id="navSelect">
@@ -126,17 +133,4 @@
                 <div style="font-size:12px;color:var(--muted);">입력 / 반영</div>
                 <div class="mono" id="sumInput">0.0</div>
                 <div class="mono" id="sumCapped">0.0</div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <!-- KPIs -->
-      <div class="kpi">
-        <div class="chip">
-          <strong>1주 소정근로시간 (최대 40시간)</strong>
-          <div class="val mono" id="weeklyStd">0.0</div>
-        </div>
-        <div class="chip">
-          <s
+              </td

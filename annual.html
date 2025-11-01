@@ -402,15 +402,35 @@ function calc(){
   }
   // 3년차 이후 — 퇴사연도 12/31 기준으로 비교
   {
-    const leaveCut = leave ? new Date(leave.getFullYear(), 11, 31) : null;
+// 3년차 이후 — 각 해 1/1이 퇴사일 이전일 때만 출력 (← 이게 원래 의도)
+{
+  let displayYear = 3;                         // 3년차부터
+  let year = firstAnniv.getFullYear() + 1;     // 3년차가 되는 해 (예: 2025)
 
-    let displayYear = 3;
-    let year = firstAnniv.getFullYear() + 1;  // 3년차의 해
+  while (true) {
+    const rowDate = new Date(year, 0, 1);      // ★ 매년 1월 1일 발생
 
-    while(true){
-      const rowDate = new Date(year, 0, 1);
-      // 퇴사연도 12/31보다 이후면 중단
-      if(leaveCut && rowDate > leaveCut) break;
+    // 퇴사일이 있고, 그 퇴사일보다 이 1/1이 늦으면 그 해부터는 안 보여줌
+    if (leave && rowDate > leave) break;
+
+    const days = fiscalDaysByDisplayYear(displayYear);
+    const base = days * 1.0;
+    const [u, c] = usedCompCells(base, 'fiscal-regular', isLegacy);
+
+    fBody.appendChild(tr([
+      th(`${displayYear}년차`),
+      td(fmtDate(rowDate), 'yellow'),
+      td(base.toFixed(1), 'yellow right mono'),
+      u,
+      c
+    ]));
+
+    fSum += base;
+    displayYear++;
+    year++;
+    if (displayYear > 50) break;
+  }
+}
 
       const days = fiscalDaysByDisplayYear(displayYear);
       const base = days * 1.0;

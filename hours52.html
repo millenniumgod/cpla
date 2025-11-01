@@ -36,7 +36,7 @@
   .brand-text{
     font-weight:800;color:var(--title);line-height:1
   }
-  /* 연차계산기랑 같은 모양의 아이콘 */
+  /* 연차계산기와 동일 스타일 아이콘 */
   .calc-badge{
     width:26px;height:26px;border-radius:9px;
     background:linear-gradient(165deg,#0a2a60 0%,#2a66ff 100%);
@@ -83,7 +83,7 @@
     padding:4px 6px;
     border-radius:8px;
     border:1px solid rgba(13,27,42,.08);
-    background:var(--surface); /* 너무 연해서 안 보이던 거 해결 */
+    background:var(--surface);
     color:var(--text);
     font-variant-numeric:tabular-nums;
     outline:none;
@@ -117,11 +117,9 @@
 
 <!-- 상단 바 -->
 <div class="appbar">
-  <!-- LISANG Lab 로고 누르면 메인 -->
   <a href="./" class="brand-wrap" aria-label="LISANG Lab 메인으로 이동">
     <img src="./lisang-lab-logo.png" alt="LISANG Lab" class="brand-logo" />
     <span class="brand-text">LISANG Lab</span>
-    <!-- 연차계산기랑 동일한 스타일의 아이콘 -->
     <span class="calc-badge" title="주휴시간 계산기">주</span>
   </a>
   <div style="display:flex;gap:10px;align-items:center;">
@@ -158,8 +156,7 @@
             <tr>
               <th style="text-align:right" colspan="7">합계</th>
               <td style="text-align:center;">
-                <div style="font-size:12px;color:var(--muted);">입력 / 반영</div>
-                <div class="mono" id="sumInput">0.0</div>
+                <div style="font-size:12px;color:var(--muted);">합계(반영)</div>
                 <div class="mono" id="sumCapped">0.0</div>
               </td>
             </tr>
@@ -212,7 +209,7 @@ document.getElementById('themeBtn').addEventListener('click',()=>{
 });
 
 /* ===== Core ===== */
-const DAY_LABELS = ['일','월','화','수','목','금','토']; // 가로표니까 짧게
+const DAY_LABELS = ['일','월','화','수','목','금','토'];
 const MAX_PER_DAY = 8;
 const MAX_PER_WEEK = 40;
 const HOLIDAY_MIN = 15; // 1주 15시간 미만이면 주휴 미발생
@@ -232,7 +229,7 @@ function renderGrid(){
   rowApplied.innerHTML = '';
 
   DAY_LABELS.forEach((name, idx)=>{
-    // 요일 헤더
+    // 요일
     const th = document.createElement('th');
     th.textContent = name;
     rowNames.appendChild(th);
@@ -244,7 +241,7 @@ function renderGrid(){
     input.min = '0';
     input.step = '0.1';
     input.placeholder = '0';
-    input.value = '';               // 기본 0 없앰
+    input.value = '';
     input.className = 'day-input';
     input.dataset.index = idx;
     tdInput.appendChild(input);
@@ -261,16 +258,14 @@ function renderGrid(){
     input.addEventListener('blur', handleChange);
   });
 
-  // 마지막 열: 합계용 헤더/셀
+  // 마지막 열: 합계 헤더
   const thSum = document.createElement('th');
   thSum.textContent = '합계';
   rowNames.appendChild(thSum);
 
-  const tdSumInput = document.createElement('td');
-  rowInputs.appendChild(tdSumInput);
-
-  const tdSumApplied = document.createElement('td');
-  rowApplied.appendChild(tdSumApplied);
+  // 입력/반영 줄의 마지막 셀은 비워둠
+  rowInputs.appendChild(document.createElement('td'));
+  rowApplied.appendChild(document.createElement('td'));
 }
 
 function handleChange(e){
@@ -280,7 +275,6 @@ function handleChange(e){
   }
   const idx = e.target.dataset.index;
   document.getElementById(`applied-${idx}`).textContent = v.toFixed(1);
-
   recalc();
 }
 
@@ -288,7 +282,7 @@ function recalc(){
   const inputs = [...document.querySelectorAll('.day-input')];
   const applied = inputs.map(inp => clampDay(inp.value === '' ? 0 : inp.value));
 
-  const sumInput = inputs.reduce((a,inp)=>a + (inp.value === '' ? 0 : (parseFloat(inp.value)||0)), 0);
+  // 합계(입력값 총합은 굳이 표시 안 함)
   const sumApplied = applied.reduce((a,b)=>a+b, 0);
 
   // 주 소정근로시간: 최대 40
@@ -305,7 +299,7 @@ function recalc(){
     msgBox.innerHTML = '';
   }
 
-  document.getElementById('sumInput').textContent = sumInput.toFixed(1);
+  // 화면 반영
   document.getElementById('sumCapped').textContent = sumApplied.toFixed(1);
   document.getElementById('weeklyStd').textContent = weeklyStd.toFixed(1);
   document.getElementById('weeklyHolidayPerDay').textContent = weeklyHolidayPerDay.toFixed(1);

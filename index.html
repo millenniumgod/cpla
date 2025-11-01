@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>HR 계산기 메인</title>
-<meta name="description" content="퇴직금, 연차휴가, 주휴시간, 출산·육아휴직 등 HR 실무용 계산기 모음" />
+<meta name="description" content="퇴직금, 연차휴가, 주휴시간, 월급여(4대보험·간이세액) 등 HR 실무용 계산기 모음" />
 <style>
   :root{
     --bg:#f6f8fb; --surface:#fff; --line:#e5eaf0;
@@ -55,20 +55,19 @@
      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
        <path d="M12 2l7 4v6c0 5-3.5 8-7 10-3.5-2-7-5-7-10V6l7-4z" fill="currentColor"/>
      </svg>
-  <span>LISANG LAB</span>
-</a>
+     <span>LISANG LAB</span>
+    </a>
 
     <button id="themeBtn" class="btn" type="button">🌙 다크 모드</button>
   </div>
 
   <div class="container">
     <h1>HR 실무 계산기 모음</h1>
-    <p class="sub">현업에서 바로 쓰는 툴만 담았습니다. 필요 계산기를 클릭하세요.</p>
+    <p class="sub">현업에서 바로 쓰는 것만 넣었습니다.</p>
 
-    <!-- ✅ 계산기 카드들이 이 영역에 JS로 자동 렌더링됩니다 -->
     <div id="toolsGrid" class="grid"></div>
 
-    <!-- (선택) 향후 확장 섹션: 숨김/표시 가능 -->
+    <!-- 추가 도구 섹션은 지금은 숨김 -->
     <h3 id="moreTitle" class="section-title" style="display:none;">추가 예정 도구</h3>
     <div id="moreGrid" class="grid"></div>
 
@@ -97,15 +96,11 @@ document.getElementById('themeBtn').addEventListener('click',()=>{
   updateThemeBtn();
 });
 
-/* ===== 카드 데이터만 추가하면 자동 반영 =====
- * visible: true/false로 표시 여부 제어
- * group: 'main' | 'more' 로 섹션 분리
- * icon: 간단한 이모지 아이콘(원하면 빈 문자열 가능)
- */
+/* ===== 여기서 보이는 계산기만 ===== */
 const TOOLS = [
   {
     title: '평균임금 및 퇴직금 계산기',
-    desc: '입사·퇴사일과 임금 내역을 입력하면 평균임금과 법정 퇴직금을 자동 산정합니다.',
+    desc: '입사·퇴사일, 3개월 임금만 넣으면 평균임금과 퇴직금을 자동 산정합니다.',
     href: './severance.html',
     icon: '💼',
     group: 'main',
@@ -113,7 +108,7 @@ const TOOLS = [
   },
   {
     title: '연차휴가 계산기',
-    desc: '입사일 기준·회계연도 기준으로 연차발생일수와 보상일수를 동시에 계산합니다.',
+    desc: '입사일 기준/회계연도 기준 연차를 한 번에 계산합니다.',
     href: './annual.html',
     icon: '📅',
     group: 'main',
@@ -121,38 +116,20 @@ const TOOLS = [
   },
   {
     title: '주휴시간 계산기',
-    desc: '요일별 근로시간을 입력하면 주 소정근로시간과 주휴시간을 자동으로 계산합니다.',
+    desc: '요일별 소정근로시간을 입력하면 주휴 성립과 시간을 자동 산정합니다.',
     href: './hours52.html',
     icon: '⏱️',
     group: 'main',
     visible: true,
   },
   {
-    title: '출산휴가·육아휴직 급여 계산기',
-    desc: '통상임금 기준으로 출산전후휴가 및 육아휴직 급여를 추정합니다.',
-    href: './maternity_parental.html',
-    icon: '👶',
+    title: '월급여(4대보험·간이세액) 계산기',
+    desc: '엑셀로 올린 4대보험 요율과 국세청 간이세액표를 읽어 월 실수령을 계산합니다.',
+    href: './payroll.html',
+    icon: '💰',
     group: 'main',
     visible: true,
   },
-
-  /* ===== 여기 아래로 향후 추가할 도구 예시 ===== */
-  // {
-  //   title: '통상임금 계산기',
-  //   desc: '통상임금 산정과 포함/제외 항목을 도와주는 도구입니다.',
-  //   href: './ordinary_wage.html',
-  //   icon: '🧮',
-  //   group: 'more',
-  //   visible: false
-  // },
-  // {
-  //   title: '휴업수당 계산기',
-  //   desc: '평균임금의 70% 기준 휴업수당을 간단히 계산합니다.',
-  //   href: './suspension_allowance.html',
-  //   icon: '🛠️',
-  //   group: 'more',
-  //   visible: false
-  // },
 ];
 
 /* ===== 렌더러 ===== */

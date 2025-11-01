@@ -1,0 +1,458 @@
+<!doctype html>
+<html lang="ko" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <title>LISANG Lab 월 급여 계산기</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- xlsx 파서 -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <style>
+    :root {
+      --primary: #0a2a60;
+      --bg: #f4f6fb;
+      --card: #fff;
+      --border: #d5d9e2;
+    }
+    body {
+      margin:0; font-family:system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:var(--bg);
+    }
+    header {
+      background:var(--primary); color:#fff; padding:14px 20px;
+      display:flex; align-items:center; gap:10px;
+    }
+    header .logo {
+      width:34px; height:34px; border:2px solid rgba(255,255,255,.35);
+      border-radius:12px; display:flex; align-items:center; justify-content:center;
+      font-weight:700; font-size:13px;
+    }
+    main { max-width:1000px; margin:20px auto 50px; padding:0 16px; }
+    .card {
+      background:var(--card); border:1px solid var(--border); border-radius:14px;
+      padding:18px 18px 24px; margin-bottom:16px;
+      box-shadow:0 10px 30px rgba(0,0,0,.03);
+    }
+    h1 { font-size:20px; margin-bottom:8px; }
+    label { display:block; margin:8px 0 4px; font-weight:500; }
+    input, select {
+      width:100%; padding:7px 8px; border:1px solid #cfd3dd; border-radius:8px;
+      font-size:14px; box-sizing:border-box;
+    }
+    .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:14px; }
+    button {
+      background:var(--primary); color:#fff; border:none; border-radius:8px;
+      padding:9px 16px; font-weight:600; cursor:pointer; margin-top:10px;
+    }
+    pre {
+      background:#101827; color:#fff; border-radius:8px; padding:12px 14px;
+      white-space:pre-wrap; word-break:break-all; font-size:13px;
+    }
+    .two {
+      display:grid; grid-template-columns:1.2fr .8fr; gap:18px;
+    }
+    @media(max-width:820px) {
+      .two { grid-template-columns:1fr; }
+    }
+    .warn { background:#fff5e5; border:1px solid #ffdc9e; padding:8px 10px; border-radius:10px; font-size:13px; }
+    .footer {
+      margin-top:20px; font-size:12px; color:#555; line-height:1.4;
+    }
+  </style>
+</head>
+<body>
+<header>
+  <div class="logo">LL</div>
+  <div>
+    <div style="font-weight:700;">LISANG Lab</div>
+    <div style="font-size:12px; opacity:.75;">월 급여 · 4대보험 · 간이세액 · 일할</div>
+  </div>
+</header>
+
+<main>
+  <div class="card two">
+    <div>
+      <h1>월 급여 계산기</h1>
+      <p style="font-size:13px;">1) 4대보험요율, 2) 국세청 간이세액표는 <b>/data</b> 폴더에 있는 엑셀에서 불러옵니다. 매년 엑셀만 교체하면 됩니다.</p>
+      <div class="grid">
+        <div>
+          <label>기본급(과세)</label>
+          <input type="number" id="base" value="3000000" />
+        </div>
+        <div>
+          <label>비과세(식대 등)</label>
+          <input type="number" id="nontax" value="200000" />
+        </div>
+        <div>
+          <label>공제대상 가족수</label>
+          <input type="number" id="family" value="1" min="1" />
+        </div>
+        <div>
+          <label>입사일</label>
+          <input type="date" id="join" />
+        </div>
+        <div>
+          <label>퇴사일</label>
+          <input type="date" id="leave" />
+        </div>
+        <div>
+          <label>일할 기준</label>
+          <select id="prorate">
+            <option value="none">일할 안함</option>
+            <option value="calendar">달력일수 기준</option>
+            <option value="30">30일 기준</option>
+            <option value="workdays">주5일(토·일제외)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="grid" style="margin-top:6px;">
+        <div><label><input type="checkbox" id="useNp" checked /> 국민연금</label></div>
+        <div><label><input type="checkbox" id="useHi" checked /> 건강보험</label></div>
+        <div><label><input type="checkbox" id="useLtc" checked /> 장기요양</label></div>
+        <div><label><input type="checkbox" id="useEi" checked /> 고용보험</label></div>
+      </div>
+
+      <button onclick="runCalc()">계산하기</button>
+      <p id="status" style="font-size:12px; margin-top:8px; color:#777;">엑셀을 불러오는 중입니다...</p>
+    </div>
+
+    <div>
+      <h2 style="font-size:16px; margin-top:0;">결과</h2>
+      <pre id="out">엑셀 로딩 전입니다.</pre>
+      <div class="warn">
+        - 4대보험요율: <b>2025년 4대보험 요율.xlsx</b> Sheet1 기준<br>
+        - 소득세: <b>근로소득_간이세액표(조견표)_2025년.xlsx</b> Sheet1 기준<br>
+        - 파일 이름/열 구조만 그대로 유지하면 내년에 엑셀만 교체해도 됩니다.
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    ⓒ 2025 LISANG Lab. 일부 권리 보유. 비영리 공유는 출처 표기 시 허용, 무단 상업적 이용 금지.<br>
+    본 계산기는 참고용이며, 실제 법령·고시와 차이가 있을 수 있습니다.
+  </div>
+</main>
+
+<script>
+/* =======================
+   1. 설정 (엑셀 경로만 바꿔도 되도록)
+   ======================= */
+const INS_XLSX_URL = "./data/2025년 4대보험 요율.xlsx";
+const TAX_XLSX_URL = "./data/근로소득_간이세액표(조견표)_2025년.xlsx";
+
+let INS_CONFIG = null;   // {pension:{emp,base}, health:{emp}, ltc:{ratio,empShare}, emp:{emp}}
+let TAX_TABLE = null;    // [{min:770000, max:775000, taxes:[...]}]
+let TAX_FAMILY_HEADERS = []; // [1,2,3,...]
+
+document.getElementById('status').textContent = "엑셀 불러오는 중...";
+
+/* =======================
+   2. 엑셀 읽기 공통
+   ======================= */
+async function fetchArrayBuffer(url) {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("엑셀을 불러오지 못했습니다: " + url);
+  return await res.arrayBuffer();
+}
+
+function sheetToRows(wb) {
+  const ws = wb.Sheets[wb.SheetNames[0]];
+  return XLSX.utils.sheet_to_json(ws, {header:1, raw:true});
+}
+
+/* =======================
+   3. 4대보험 파서
+   - 네 엑셀 구조:
+     B열: 보험 항목 / C열: 요율(근로자+사업주) / D열: 근로자 부담 / E열: 사업주 부담
+     국민연금, 건강보험, 장기요양보험(건강보험료의 12.95%), 고용보험
+   ======================= */
+function parseInsuranceRows(rows) {
+  // 헤더 찾기
+  const headerIdx = rows.findIndex(r => r[1] && String(r[1]).includes("보험 항목"));
+  if (headerIdx === -1) throw new Error("4대보험 엑셀에서 헤더를 찾을 수 없음");
+
+  const result = {};
+  for (let i = headerIdx + 1; i < rows.length; i++) {
+    const r = rows[i];
+    const name = r[1];
+    if (!name) continue;
+    if (name.includes("국민연금")) {
+      result.pension = {
+        total: parseFloat(r[2]),
+        emp: parseFloat(r[3])
+      };
+    } else if (name.includes("건강보험")) {
+      result.health = {
+        total: parseFloat(r[2]),
+        emp: parseFloat(r[3])
+      };
+    } else if (name.includes("장기요양")) {
+      // "건강보험료의 12.95%" , 근로자부담 0.5
+      let txt = r[2];
+      let ratio = 0.1295; // fallback
+      if (typeof txt === "string" && txt.includes("%")) {
+        const m = txt.match(/([\d.]+)%/);
+        if (m) ratio = parseFloat(m[1]) / 100.0;
+      }
+      result.ltc = {
+        healthRatio: ratio,
+        empShare: parseFloat(r[3])
+      };
+    } else if (name.includes("고용보험")) {
+      result.emp = { emp: parseFloat(r[3]) };
+    }
+  }
+  return result;
+}
+
+/* =======================
+   4. 간이세액표 파서
+   - A열: 월급여액(천원) 이상
+   - B열: 미만
+   - C열: 공제대상가족 1명
+   - D열 이후: 2,3,...,11명
+   - 실제 값은 원 단위가 아니라 "원"으로 들어있으므로 그대로 쓴다.
+   ======================= */
+function parseTaxRows(rows) {
+  // 공제대상가족의 수 찾기 (보통 2번째 줄에 있음)
+  const famIdx = rows.findIndex(r => r.some(c => c === "공제대상가족의 수"));
+  if (famIdx === -1) throw new Error("간이세액표에서 '공제대상가족의 수' 행을 찾을 수 없음");
+
+  const famNumbersRow = rows[famIdx + 1]; // 여기 1,2,3,... 들어있음
+  const families = [];
+  for (let c = 2; c < famNumbersRow.length; c++) {
+    if (famNumbersRow[c] != null && famNumbersRow[c] !== "") {
+      families.push(famNumbersRow[c]);
+    }
+  }
+
+  const data = [];
+  // 실제 데이터는 famIdx+3 행부터 숫자가 나오기 시작
+  for (let i = famIdx + 3; i < rows.length; i++) {
+    const r = rows[i];
+    const min = r[0];
+    const max = r[1];
+    if (typeof min !== "number") continue;
+    // 원 단위로 바꿔서 저장 (A열이 천원단위니까 *1000)
+    const rowObj = {
+      min: Math.round(min * 1000),
+      max: typeof max === "number" ? Math.round(max * 1000) : null,
+      taxes: []
+    };
+    // 가족수별 세액
+    for (let c = 2; c < 2 + families.length; c++) {
+      const v = r[c];
+      rowObj.taxes.push(typeof v === "number" ? Math.round(v) : 0);
+    }
+    data.push(rowObj);
+  }
+
+  return {families, data};
+}
+
+/* =======================
+   5. 엑셀 읽어서 전역 세팅
+   ======================= */
+Promise.all([
+  fetchArrayBuffer(INS_XLSX_URL).then(buf => {
+    const wb = XLSX.read(buf, {type:"array"});
+    const rows = sheetToRows(wb);
+    INS_CONFIG = parseInsuranceRows(rows);
+  }).catch(e => {
+    console.warn(e);
+    // fallback
+    INS_CONFIG = {
+      pension: {total:0.09, emp:0.045},
+      health: {total:0.0709, emp:0.03545},
+      ltc: {healthRatio:0.1295, empShare:0.5},
+      emp: {emp:0.009}
+    };
+  }),
+  fetchArrayBuffer(TAX_XLSX_URL).then(buf => {
+    const wb = XLSX.read(buf, {type:"array"});
+    const rows = sheetToRows(wb);
+    const {families, data} = parseTaxRows(rows);
+    TAX_TABLE = data;
+    TAX_FAMILY_HEADERS = families;
+  }).catch(e => {
+    console.warn(e);
+    TAX_TABLE = null;
+    TAX_FAMILY_HEADERS = [];
+  })
+]).then(() => {
+  document.getElementById('status').textContent = "엑셀 로딩 완료. 계산할 수 있습니다.";
+}).catch(() => {
+  document.getElementById('status').textContent = "엑셀 로딩에 일부 실패했습니다. (기본값으로 계산)";
+});
+
+/* =======================
+   6. 계산 유틸
+   ======================= */
+// 달의 마지막 날
+function lastDayOfMonth(year, month0) {
+  return new Date(year, month0 + 1, 0).getDate();
+}
+
+// 주말 제외 (토·일)
+function countWorkdays(y, m, startD, endD) {
+  let cnt = 0;
+  for (let d = startD; d <= endD; d++) {
+    const dt = new Date(y, m, d);
+    const day = dt.getDay();
+    if (day !== 0 && day !== 6) cnt++;
+  }
+  return cnt;
+}
+
+// 일할계산
+function proratePay(base, joinStr, leaveStr, mode) {
+  if (mode === "none") return base;
+
+  const today = new Date();
+  let year = today.getFullYear();
+  let month0 = today.getMonth(); // 0~11
+  const ld = lastDayOfMonth(year, month0);
+  const monthStart = 1;
+  const monthEnd = ld;
+
+  let start = monthStart;
+  let end = monthEnd;
+
+  if (joinStr) {
+    const j = new Date(joinStr);
+    if (j.getFullYear() === year && j.getMonth() === month0) {
+      start = j.getDate();
+    }
+  }
+  if (leaveStr) {
+    const l = new Date(leaveStr);
+    if (l.getFullYear() === year && l.getMonth() === month0) {
+      end = l.getDate();
+    }
+  }
+
+  if (mode === "calendar") {
+    const worked = end - start + 1;
+    return Math.round(base * worked / ld);
+  } else if (mode === "30") {
+    const worked = end - start + 1;
+    return Math.round(base * worked / 30);
+  } else if (mode === "workdays") {
+    const totalWd = countWorkdays(year, month0, monthStart, monthEnd);
+    const workedWd = countWorkdays(year, month0, start, end);
+    return Math.round(base * workedWd / (totalWd || 1));
+  }
+  return base;
+}
+
+// 4대보험 계산
+function calc4ins(gross, use) {
+  const res = {pension:0, health:0, ltc:0, emp:0, total:0};
+  if (!INS_CONFIG) return res;
+
+  if (use.np && INS_CONFIG.pension) {
+    res.pension = Math.round(gross * INS_CONFIG.pension.emp);
+  }
+  if (use.hi && INS_CONFIG.health) {
+    res.health = Math.round(gross * INS_CONFIG.health.emp);
+  }
+  if (use.ltc && INS_CONFIG.ltc) {
+    // 장기요양 = 건강보험료 * (healthRatio) * empShare
+    const healthPrem = res.health;
+    res.ltc = Math.round(healthPrem * INS_CONFIG.ltc.healthRatio * INS_CONFIG.ltc.empShare);
+  }
+  if (use.ei && INS_CONFIG.emp) {
+    res.emp = Math.round(gross * INS_CONFIG.emp.emp);
+  }
+
+  res.total = res.pension + res.health + res.ltc + res.emp;
+  return res;
+}
+
+// 간이세액표 조회
+function getWithholdingTax(monthlyTaxable, familyCount) {
+  if (!TAX_TABLE || TAX_TABLE.length === 0) {
+    return 0;
+  }
+  // 표가 천원단위라 1000원 미만은 그냥 0으로 본다.
+  const row = (() => {
+    for (let i = 0; i < TAX_TABLE.length; i++) {
+      const r = TAX_TABLE[i];
+      if (r.max == null) {
+        if (monthlyTaxable >= r.min) return r;
+      } else if (monthlyTaxable >= r.min && monthlyTaxable < r.max) {
+        return r;
+      }
+    }
+    // 못 찾으면 마지막
+    return TAX_TABLE[TAX_TABLE.length - 1];
+  })();
+
+  // 가족수 인덱스
+  let idx = 0;
+  if (TAX_FAMILY_HEADERS && TAX_FAMILY_HEADERS.length > 0) {
+    // 가족수는 보통 1~11인데 입력이 더 크면 마지막
+    const pos = TAX_FAMILY_HEADERS.indexOf(familyCount);
+    if (pos >= 0) idx = pos;
+    else idx = TAX_FAMILY_HEADERS.length - 1;
+  }
+  const val = row.taxes[idx] || 0;
+  return val;
+}
+
+/* =======================
+   7. 메인 계산
+   ======================= */
+function runCalc() {
+  const base = +document.getElementById('base').value || 0;
+  const nontax = +document.getElementById('nontax').value || 0;
+  const family = +document.getElementById('family').value || 1;
+  const join = document.getElementById('join').value;
+  const leave = document.getElementById('leave').value;
+  const mode = document.getElementById('prorate').value;
+
+  // 일할 적용된 과세급여
+  const taxableBase = proratePay(base, join, leave, mode);
+
+  // 4대보험
+  const ins = calc4ins(taxableBase, {
+    np: document.getElementById('useNp').checked,
+    hi: document.getElementById('useHi').checked,
+    ltc: document.getElementById('useLtc').checked,
+    ei: document.getElementById('useEi').checked,
+  });
+
+  // 간이세액: 과세급여 = 일할된 급여에서 비과세는 뺀 금액
+  const taxableForTax = Math.max(taxableBase - nontax, 0);
+  const incomeTax = getWithholdingTax(taxableForTax, family);
+  const localTax = Math.round(incomeTax * 0.1); // 지방소득세 10%
+
+  // 실수령
+  const totalDeduct = ins.total + incomeTax + localTax;
+  const net = taxableBase + nontax - totalDeduct;
+
+  const out = [
+    `▶ 과세급여(일할 반영): ${taxableBase.toLocaleString()}원`,
+    `▶ 비과세: ${nontax.toLocaleString()}원`,
+    ``,
+    `[4대보험 근로자 부담]`,
+    `국민연금: ${ins.pension.toLocaleString()}원`,
+    `건강보험: ${ins.health.toLocaleString()}원`,
+    `장기요양: ${ins.ltc.toLocaleString()}원`,
+    `고용보험: ${ins.emp.toLocaleString()}원`,
+    `합계: ${ins.total.toLocaleString()}원`,
+    ``,
+    `[세금]`,
+    `근로소득세(간이): ${incomeTax.toLocaleString()}원`,
+    `지방소득세(10%): ${localTax.toLocaleString()}원`,
+    ``,
+    `총 공제: ${totalDeduct.toLocaleString()}원`,
+    ``,
+    `▶ 실수령액: ${net.toLocaleString()}원`,
+  ].join("\n");
+
+  document.getElementById('out').textContent = out;
+}
+</script>
+</body>
+</html>

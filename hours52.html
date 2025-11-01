@@ -10,62 +10,105 @@
     --bg:#f6f8fb; --surface:#fff; --line:#e5eaf0; --text:#0d1b2a; --muted:#516173;
     --title:#0a0f18; --accent:#2a66ff; --ring:rgba(42,102,255,.22);
     --sec-bg:#0a2a60; --sec-fg:#fff;
-    --input-soft:#edf0f4;
   }
   [data-theme="dark"]{
     --bg:#0a0e13; --surface:#0f1520; --line:#1f2a3a; --text:#eef4fb; --muted:#8ea4b8;
     --title:#fff; --accent:#62a8ff; --ring:rgba(98,168,255,.35);
     --sec-bg:#0a2a60; --sec-fg:#fff;
-    --input-soft:rgba(255,255,255,.02);
   }
   *{box-sizing:border-box}
   html,body{
     margin:0;padding:0;background:var(--bg);color:var(--text);
     font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,Malgun Gothic,Helvetica,Arial,sans-serif;
   }
+
+  /* 상단바 */
   .appbar{
-    position:sticky;top:0;z-index:10;display:flex;gap:12px;align-items:center;justify-content:space-between;
-    padding:10px 16px;background:var(--bg);border-bottom:1px solid var(--line);backdrop-filter:saturate(140%) blur(6px)
+    position:sticky;top:0;z-index:10;
+    display:flex;align-items:center;justify-content:space-between;gap:16px;
+    padding:10px 16px;
+    background:var(--bg);
+    border-bottom:1px solid var(--line);
+    backdrop-filter:saturate(140%) blur(6px);
   }
-  .brand-wrap{
-    display:flex;gap:8px;align-items:center;text-decoration:none;color:inherit
+  /* annual.html 헤더와 동일한 형태 */
+  .brand-link{
+    display:flex;align-items:center;gap:10px;
+    text-decoration:none;color:inherit;
   }
-  .brand-logo{
-    width:32px;height:32px;border-radius:12px;object-fit:cover;display:block
+  .brand-icon{
+    width:34px;height:34px;border-radius:13px;
+    background:linear-gradient(165deg,#0a2a60 0%,#2a66ff 100%);
+    box-shadow:0 6px 16px rgba(10,42,96,.35);
   }
   .brand-text{
-    font-weight:800;color:var(--title);line-height:1
-  }
-  /* 연차계산기와 동일 스타일 아이콘 */
-  .calc-badge{
-    width:26px;height:26px;border-radius:9px;
-    background:linear-gradient(165deg,#0a2a60 0%,#2a66ff 100%);
-    box-shadow:0 4px 14px rgba(10,42,96,.25);
-    display:flex;align-items:center;justify-content:center;
-    color:#fff;font-size:12px;font-weight:700;
+    font-weight:800;
+    color:var(--title);
+    letter-spacing:.01em;
   }
 
   select,.btn{
-    border:1px solid var(--line);border-radius:12px;padding:8px 12px;
-    background:var(--surface);color:var(--text);outline:none;transition:.15s;font-size:13px
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:8px 12px;
+    background:var(--surface);
+    color:var(--text);
+    outline:none;
+    transition:.15s;
+    font-size:13px;
   }
   select:hover{border-color:color-mix(in oklab, var(--accent) 30%, var(--line))}
-  .btn{border:1px solid var(--accent);background:color-mix(in oklab, var(--accent) 12%, var(--surface));font-weight:700;cursor:pointer}
+  .btn{
+    border:1px solid var(--accent);
+    background:color-mix(in oklab, var(--accent) 12%, var(--surface));
+    font-weight:700;
+    cursor:pointer;
+  }
 
   .container{max-width:900px;margin:24px auto 80px;padding:0 16px}
-  .sheet{background:var(--surface);border:1px solid var(--line);border-radius:18px;overflow:hidden;box-shadow:0 8px 30px rgba(0,0,0,.08)}
-  .sheet h1{margin:0;padding:18px;text-align:center;font-size:20px;font-weight:800;color:var(--title);
-    border-bottom:1px solid var(--line);background:color-mix(in oklab, var(--surface) 92%, var(--bg))}
+  .sheet{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:18px;
+    overflow:hidden;
+    box-shadow:0 8px 30px rgba(0,0,0,.08)
+  }
+  .sheet h1{
+    margin:0;
+    padding:18px;
+    text-align:center;
+    font-size:20px;
+    font-weight:800;
+    color:var(--title);
+    border-bottom:1px solid var(--line);
+    background:color-mix(in oklab, var(--surface) 92%, var(--bg));
+  }
 
-  .controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line);background:var(--surface)}
+  .controls{
+    display:flex;gap:10px;flex-wrap:wrap;align-items:center;
+    padding:12px 16px;
+    border-bottom:1px solid var(--line);
+    background:var(--surface);
+  }
+
   .tables{padding:16px}
-
-  .table-wrap{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--surface)}
+  .table-wrap{
+    border:1px solid var(--line);
+    border-radius:14px;
+    overflow:hidden;
+    background:var(--surface);
+  }
   table{width:100%;border-collapse:separate;border-spacing:0}
   th,td{border-bottom:1px solid var(--line);vertical-align:middle}
-  .sec-title{background:var(--sec-bg)!important;color:var(--sec-fg)!important;text-align:left;font-weight:800;padding:10px 12px}
+  .sec-title{
+    background:var(--sec-bg)!important;
+    color:var(--sec-fg)!important;
+    text-align:left;
+    font-weight:800;
+    padding:10px 12px;
+  }
 
-  /* ▶ 가로표 스타일 */
+  /* 가로표 */
   .day-grid th,
   .day-grid td{
     text-align:center;
@@ -76,6 +119,8 @@
     background:color-mix(in oklab, var(--surface) 90%, var(--bg));
     font-weight:700;
   }
+
+  /* 입력칸 - 보이게 */
   .day-input{
     width:68px;
     height:30px;
@@ -96,20 +141,31 @@
     border-color:var(--accent);
     box-shadow:0 0 0 3px var(--ring);
   }
+
   .applied-cell{
     font-variant-numeric:tabular-nums;
     font-weight:600;
   }
 
-  .right{text-align:right}
   .mono{font-variant-numeric:tabular-nums}
-
   .kpi{display:flex;gap:16px;flex-wrap:wrap;padding:16px 0 4px}
-  .chip{flex:1 1 220px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px}
+  .chip{
+    flex:1 1 220px;
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:14px;
+  }
   .chip strong{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
   .chip .val{font-size:20px;font-weight:800}
 
-  .note{padding:14px 16px 18px;border-top:1px solid var(--line);color:var(--muted);font-size:13px;line-height:1.6}
+  .note{
+    padding:14px 16px 18px;
+    border-top:1px solid var(--line);
+    color:var(--muted);
+    font-size:13px;
+    line-height:1.6;
+  }
   .note-warning{color:#d02828;font-weight:600;margin-bottom:6px}
 </style>
 </head>
@@ -117,13 +173,13 @@
 
 <!-- 상단 바 -->
 <div class="appbar">
-  <a href="./" class="brand-wrap" aria-label="LISANG Lab 메인으로 이동">
-    <img src="./lisang-lab-logo.png" alt="LISANG Lab" class="brand-logo" />
+  <!-- annual.html 과 동일한 구조 -->
+  <a href="./" class="brand-link" aria-label="LISANG Lab 메인으로 이동">
+    <span class="brand-icon"></span>
     <span class="brand-text">LISANG Lab</span>
-    <span class="calc-badge" title="주휴시간 계산기">주</span>
   </a>
   <div style="display:flex;gap:10px;align-items:center;">
-    <label for="navSelect" class="subtle" style="font-size:12px;color:var(--muted);">계산기</label>
+    <label for="navSelect" style="font-size:12px;color:var(--muted);">계산기</label>
     <select id="navSelect">
       <option value="./">메인</option>
       <option value="./severance.html">퇴직금 계산기</option>
@@ -258,12 +314,10 @@ function renderGrid(){
     input.addEventListener('blur', handleChange);
   });
 
-  // 마지막 열: 합계 헤더
+  // 마지막 열: 합계 열
   const thSum = document.createElement('th');
   thSum.textContent = '합계';
   rowNames.appendChild(thSum);
-
-  // 입력/반영 줄의 마지막 셀은 비워둠
   rowInputs.appendChild(document.createElement('td'));
   rowApplied.appendChild(document.createElement('td'));
 }
@@ -282,13 +336,9 @@ function recalc(){
   const inputs = [...document.querySelectorAll('.day-input')];
   const applied = inputs.map(inp => clampDay(inp.value === '' ? 0 : inp.value));
 
-  // 합계(입력값 총합은 굳이 표시 안 함)
   const sumApplied = applied.reduce((a,b)=>a+b, 0);
-
-  // 주 소정근로시간: 최대 40
   const weeklyStd = Math.min(sumApplied, MAX_PER_WEEK);
 
-  // 15시간 미만이면 주휴 미발생
   let weeklyHolidayPerDay = 0;
   const msgBox = document.getElementById('holidayMsg');
   if(weeklyStd < HOLIDAY_MIN){
@@ -299,16 +349,13 @@ function recalc(){
     msgBox.innerHTML = '';
   }
 
-  // 화면 반영
   document.getElementById('sumCapped').textContent = sumApplied.toFixed(1);
   document.getElementById('weeklyStd').textContent = weeklyStd.toFixed(1);
   document.getElementById('weeklyHolidayPerDay').textContent = weeklyHolidayPerDay.toFixed(1);
 }
 
 document.getElementById('resetBtn').addEventListener('click', ()=>{
-  document.querySelectorAll('.day-input').forEach(i=> {
-    i.value='';
-  });
+  document.querySelectorAll('.day-input').forEach(i=> { i.value=''; });
   DAY_LABELS.forEach((_,i)=> document.getElementById(`applied-${i}`).textContent='0.0');
   recalc();
 });
